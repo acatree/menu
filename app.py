@@ -1,23 +1,20 @@
 from flask import Flask, render_template, request
 import pandas as pd
 from pulp import *
+import os
 
 app = Flask(__name__)
 
 # ===== 기본 데이터 =====
-data = [
-    {"name": "쌀밥", "cost": 0.5, "cal": 300, "protein": 6},
-    {"name": "닭가슴살", "cost": 1.2, "cal": 165, "protein": 31},
-    {"name": "계란", "cost": 0.3, "cal": 70, "protein": 6},
-    {"name": "김치", "cost": 0.2, "cal": 20, "protein": 1},
-    {"name": "두부찌개", "cost": 0.8, "cal": 180, "protein": 12},
-    {"name": "된장국", "cost": 0.4, "cal": 80, "protein": 4},
-    {"name": "멸치볶음", "cost": 0.5, "cal": 100, "protein": 10},
-    {"name": "시금치나물", "cost": 0.3, "cal": 40, "protein": 3},
-]
-df = pd.DataFrame(data)
+# 데이터 파일 경로
+DATA_PATH = os.path.join(os.path.dirname(__file__), "data", "menu_data.csv")
+
+# 데이터 읽기 함수
+def load_data():
+    return pd.read_csv(DATA_PATH)
 
 def optimize_menu(cal_target, protein_target, budget_limit):
+    df = load_data()  # 매번 최신 데이터 읽기
     prob = LpProblem("MilitaryMealPlan", LpMinimize)
     menu_vars = LpVariable.dicts("servings", df["name"], lowBound=0, cat="Integer")
 
