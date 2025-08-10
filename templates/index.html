@@ -106,8 +106,8 @@
         <label>목표 단백질(g):
             <input type="number" name="protein" value="70" />
         </label>
-        <label>예산(USD):
-            <input type="number" step="0.1" name="budget" value="8" />
+        <label>예산(KRW):
+            <input type="number" step="0.1" name="budget" value="10400" />
         </label>
         <button type="submit">메뉴 생성</button>
     </form>
@@ -116,23 +116,23 @@
     <h2 style="text-align:center; color:#00bcd4;">추천 식단</h2>
     <table>
         <thead>
-            <tr><th>메뉴</th><th>수량</th><th>비용 (USD)</th><th>칼로리 (kcal)</th><th>단백질 (g)</th></tr>
+            <tr><th>메뉴</th><th>수량</th><th>비용 (KRW)</th><th>칼로리 (kcal)</th><th>단백질 (g)</th></tr>
         </thead>
         <tbody>
         {% for row in result %}
             <tr>
                 <td>{{ row.menu }}</td>
                 <td>{{ row.qty }}</td>
-                <td>{{ "%.2f"|format(row.cost) }}</td>
+                <td>{{ "%.0f"|format(row.cost) }}</td>
                 <td>{{ row.cal }}</td>
                 <td>{{ row.protein }}</td>
             </tr>
         {% endfor %}
         </tbody>
     </table>
-    <p>총 비용: {{ "%.2f"|format(total_cost) }} USD</p>
+    <p>총 비용: {{ "%.0f"|format(total_cost) }} KRW</p>
     <p>총 칼로리: {{ total_cal }} kcal</p>
     <p>총 단백질: {{ total_protein }} g</p>
     {% endif %}
 </body>
-    </html>
+</html>
