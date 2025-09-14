@@ -1,27 +1,27 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>LaTeX Generator</title>
+    <title>LaTeX 생성기</title>
 </head>
 <body>
-    <h1>LaTeX eBook Generator</h1>
+    <h1>LaTeX 전자책 생성기</h1>
 
-    <!-- Display error message if passed from Flask -->
+    <!-- Flask에서 전달된 오류 메시지 표시 -->
     {% if error %}
         <p style="color:red;">{{ error }}</p>
     {% endif %}
 
     <form method="post">
-        <label for="topic">Topic:</label>
-        <input type="text" id="topic" name="topic" placeholder="Enter topic (e.g. French Constitution)" required>
+        <label for="topic">주제:</label>
+        <input type="text" id="topic" name="topic" placeholder="예: 프랑스 헌법" required>
         <br><br>
 
-        <label for="num_list">Number of Subtopics:</label>
+        <label for="num_list">하위 주제 개수:</label>
         <input type="number" id="num_list" name="num_list" value="5" min="1" max="50">
         <br><br>
 
-        <button type="submit">Generate LaTeX</button>
+        <button type="submit">LaTeX 생성하기</button>
     </form>
 </body>
 </html>
