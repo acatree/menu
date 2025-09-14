@@ -6,13 +6,21 @@
 </head>
 <body>
     <h1>LaTeX eBook Generator</h1>
+
+    <!-- Display error message if passed from Flask -->
+    {% if error %}
+        <p style="color:red;">{{ error }}</p>
+    {% endif %}
+
     <form method="post">
         <label for="topic">Topic:</label>
-        <input type="text" id="topic" name="topic" required>
+        <input type="text" id="topic" name="topic" placeholder="Enter topic (e.g. French Constitution)" required>
         <br><br>
+
         <label for="num_list">Number of Subtopics:</label>
         <input type="number" id="num_list" name="num_list" value="5" min="1" max="50">
         <br><br>
+
         <button type="submit">Generate LaTeX</button>
     </form>
 </body>
