@@ -54,5 +54,10 @@ def index():
                                total_cal=total_cal, total_protein=total_protein)
     return render_template("index.html", result=None)
 
+@app.route("/index2", methods=["GET", "POST"])
+def index2():
+    # If you want form submission logic, add here; otherwise just render
+    return render_template("index2.html")
+    
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5001, debug=True)
