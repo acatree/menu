@@ -59,12 +59,22 @@ def index():
 def index2():
     if request.method == "POST":
         topic = request.form.get("topic")
-        num_list = int(request.form.get("num_list"))
+        num_list = request.form.get("num_list")
+
+        if not topic or not num_list:
+            return render_template("index2.html", error="Please provide both topic and number.")
+
+        try:
+            num_list = int(num_list)
+        except ValueError:
+            return render_template("index2.html", error="Number must be an integer.")
+
         # generate the LaTeX file
         tex_file_path = generate_latex(topic, num_list)
         return send_file(tex_file_path, as_attachment=True)
-     return render_template("index2.html")
 
-
+    # If GET request
+    return render_template("index2.html")
+    
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5001, debug=True)
