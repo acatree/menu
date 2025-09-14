@@ -1,7 +1,8 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, send_file
 import pandas as pd
 from pulp import *
 import os
+from ebook import generate_latex        
 
 app = Flask(__name__)
 
@@ -56,8 +57,14 @@ def index():
 
 @app.route("/index2", methods=["GET", "POST"])
 def index2():
-    # If you want form submission logic, add here; otherwise just render
-    return render_template("index2.html")
-    
+    if request.method == "POST":
+        topic = request.form.get("topic")
+        num_list = int(request.form.get("num_list"))
+        # generate the LaTeX file
+        tex_file_path = generate_latex(topic, num_list)
+        return send_file(tex_file_path, as_attachment=True)
+     return render_template("index2.html")
+
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5001, debug=True)
