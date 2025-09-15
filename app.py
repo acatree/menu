@@ -5,7 +5,6 @@ import os
 from ebook import generate_latex        
 
 app = Flask(__name__)
-
 # ===== 기본 데이터 =====
 # 데이터 파일 경로
 DATA_PATH = os.path.join(os.path.dirname(__file__), "data", "menu_data.csv")
