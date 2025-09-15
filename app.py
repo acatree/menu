@@ -83,7 +83,6 @@ def index2():
                 return render_template("index2.html", error="⚠ PDF 생성에 실패했습니다.")
         else:
             return send_file(tex_path, as_attachment=True)
-
     # GET 요청 시
     return render_template("index2.html")
 
