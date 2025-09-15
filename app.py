@@ -72,7 +72,6 @@ def index2():
             return render_template("index2.html", error="⚠ 하위 주제 개수는 정수여야 합니다.")        
         # 1️⃣ LaTeX 파일 생성
         tex_path, pdf_path = generate_latex(topic, num_list)
-
         if filetype == "pdf":
         try:
             subprocess.run(
