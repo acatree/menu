@@ -8,7 +8,6 @@ app = Flask(__name__)
 # ===== 기본 데이터 =====
 # 데이터 파일 경로
 DATA_PATH = os.path.join(os.path.dirname(__file__), "data", "menu_data.csv")
-
 # 데이터 읽기 함수
 def load_data():
     return pd.read_csv(DATA_PATH)
