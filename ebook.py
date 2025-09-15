@@ -10,17 +10,18 @@ import subprocess
 openai.api_key = OPENAI_API_KEY
 
 # --- OpenAI helper functions ---
+
 def ask_question(question):
-    response = openai.ChatCompletion.create(
+    response = openai.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[
-            {"role": "system", "content": "You are a helpful assistant that answers in Korean."},
+            {"role": "system", "content": "당신은 친절한 한국어 작문 전문가입니다."},
             {"role": "user", "content": question}
         ],
+        temperature=0.7,
         max_tokens=1024,
-        temperature=0.7
     )
-    return response.choices[0].message["content"].strip()
+    return response.choices[0].message.content.strip()
 
 def blogposting(topic):
     question = f"주제: [{topic}]\n200 단어 분량의 유튜브 숏 대본을 작성하세요. 반드시 한국어로 작성하세요."
