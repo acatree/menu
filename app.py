@@ -42,7 +42,6 @@ def optimize_menu(cal_target, protein_target, budget_limit):
             result.append({"menu": i, "qty": int(qty), "cost": cost, "cal": cal, "protein": protein})
 
     return result, total_cost, total_cal, total_protein
-
 @app.route("/", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
@@ -54,7 +53,7 @@ def index():
                                total_cal=total_cal, total_protein=total_protein)
     return render_template("index.html", result=None)
 
-app.route("/index2", methods=["GET", "POST"])
+@app.route("/index2", methods=["GET", "POST"])
 def index2():
     if request.method == "POST":
         apikey = request.form.get("apikey")
