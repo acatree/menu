@@ -71,15 +71,15 @@ def index2():
         # 1️⃣ LaTeX 파일 생성
         tex_path, pdf_path = generate_latex(topic, num_list)
         if filetype == "pdf":
-        try:
-            subprocess.run(
-                    ["pdflatex", "-interaction=nonstopmode", "-output-directory", os.path.dirname(tex_path), tex_path],
-                    check=True
-                )
-                return send_file(pdf_path, as_attachment=True)
-            except subprocess.CalledProcessError as e:
-            print(e)
-            return render_template("index2.html", error="⚠ PDF 생성에 실패했습니다.")
+            try:
+                subprocess.run(
+                        ["pdflatex", "-interaction=nonstopmode", "-output-directory", os.path.dirname(tex_path), tex_path],
+                        check=True
+                    )
+                    return send_file(pdf_path, as_attachment=True)
+                except subprocess.CalledProcessError as e:
+                print(e)
+                return render_template("index2.html", error="⚠ PDF 생성에 실패했습니다.")
         else:
             return send_file(tex_path, as_attachment=True)
 
