@@ -53,7 +53,6 @@ def index():
                                total_cal=total_cal, total_protein=total_protein)
     return render_template("index.html", result=None)
 
-
 @app.route("/index2", methods=["GET", "POST"])
 def index2():
     if request.method == "POST":
@@ -67,21 +66,26 @@ def index2():
         try:
             num_list = int(num_list)
         except ValueError:
-            return render_template("index2.html", error="⚠ 하위 주제 개수는 정수여야 합니다.")        
+            return render_template("index2.html", error="⚠ 하위 주제 개수는 정수여야 합니다.")
+
         # 1️⃣ LaTeX 파일 생성
-        tex_path, pdf_path = generate_latex(topic, num_list)
+        tex_path, pdf_path = generate_latex(topic, num_list)  # 수정 필요: generate_latex이 pdf_path도 반환하도록
+
         if filetype == "pdf":
             try:
                 subprocess.run(
-                        ["pdflatex", "-interaction=nonstopmode", "-output-directory", os.path.dirname(tex_path), tex_path],
-                        check=True
-                    )
-                    return send_file(pdf_path, as_attachment=True)
-                except subprocess.CalledProcessError as e:
+                    ["pdflatex", "-interaction=nonstopmode", "-output-directory", os.path.dirname(tex_path), tex_path],
+                    check=True
+                )
+                return send_file(pdf_path, as_attachment=True)
+            except subprocess.CalledProcessError as e:
                 print(e)
                 return render_template("index2.html", error="⚠ PDF 생성에 실패했습니다.")
         else:
             return send_file(tex_path, as_attachment=True)
+
+    # GET 요청 시
+    return render_template("index2.html")
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5001, debug=True)
