@@ -42,6 +42,7 @@ def optimize_menu(cal_target, protein_target, budget_limit):
             result.append({"menu": i, "qty": int(qty), "cost": cost, "cal": cal, "protein": protein})
 
     return result, total_cost, total_cal, total_protein
+
 @app.route("/", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
@@ -53,6 +54,8 @@ def index():
                                total_cal=total_cal, total_protein=total_protein)
     return render_template("index.html", result=None)
 
+
+
 @app.route("/index2", methods=["GET", "POST"])
 def index2():
     if request.method == "POST":
@@ -62,21 +65,22 @@ def index2():
         filetype = request.form.get("filetype")
 
         if not apikey or not topic or not num_list:
-            return render_template("index2.html", error="⚠ 모든 항목을 입력해주세요.")
+            return render_template("index2.html", error="⚠ API 키, 주제, 하위 주제 개수를 모두 입력하세요.")
 
         try:
             num_list = int(num_list)
         except ValueError:
             return render_template("index2.html", error="⚠ 하위 주제 개수는 정수여야 합니다.")
 
-        openai.api_key = apikey
+        openai.api_key = apikey  # 사용자 입력 API 키 세팅
 
         tex_path, pdf_path = generate_latex(topic, num_list)
 
         if filetype == "pdf":
-            if not os.path.exists(pdf_path):
-                return render_template("index2.html", error="⚠ PDF 생성 실패")
-            return send_file(pdf_path, as_attachment=True)
+            if os.path.exists(pdf_path):
+                return send_file(pdf_path, as_attachment=True)
+            else:
+                return render_template("index2.html", error="⚠ PDF 생성에 실패했습니다.")
         else:
             return send_file(tex_path, as_attachment=True)
 
