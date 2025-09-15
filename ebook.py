@@ -1,5 +1,4 @@
 # ebook.py
-
 import os
 import csv
 from pylatex import Document, Command, NoEscape
