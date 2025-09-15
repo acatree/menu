@@ -11,16 +11,16 @@ openai.api_key = OPENAI_API_KEY
 
 # --- OpenAI helper functions ---
 def ask_question(question):
-    prompt = f"{question}\n답변은 한국어로 작성하세요:"
-    response = openai.Completion.create(
-        engine="gpt-3.5-turbo-instruct",  # instruct model
-        prompt=prompt,
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant that answers in Korean."},
+            {"role": "user", "content": question}
+        ],
         max_tokens=1024,
-        n=1,
-        stop=None,
-        temperature=0.7,
+        temperature=0.7
     )
-    return response.choices[0].text.strip()
+    return response.choices[0].message["content"].strip()
 
 def blogposting(topic):
     question = f"주제: [{topic}]\n200 단어 분량의 유튜브 숏 대본을 작성하세요. 반드시 한국어로 작성하세요."
