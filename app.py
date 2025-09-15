@@ -11,6 +11,7 @@ DATA_PATH = os.path.join(os.path.dirname(__file__), "data", "menu_data.csv")
 # 데이터 읽기 함수
 def load_data():
     return pd.read_csv(DATA_PATH)
+
 def optimize_menu(cal_target, protein_target, budget_limit):
     df = load_data()  # 매번 최신 데이터 읽기
     prob = LpProblem("MilitaryMealPlan", LpMinimize)
