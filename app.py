@@ -2,7 +2,8 @@ from flask import Flask, render_template, request, send_file
 import pandas as pd
 from pulp import *
 import os
-from ebook import generate_latex        
+from ebook import generate_latex, openai
+import subprocess
 
 app = Flask(__name__)
 # ===== 기본 데이터 =====
