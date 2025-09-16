@@ -8,7 +8,7 @@ openai.api_key = None  # Flask에서 받은 API 키로 runtime에 세팅
 
 def ask_question(question):
     response = openai.chat.completions.create(
-        model="gpt-5-mini",  # 또는 gpt-3.5-turbo 등 최신 모델
+        model="gpt-4o-mini",  # 또는 gpt-3.5-turbo 등 최신 모델
         messages=[
             {"role": "system", "content": "당신은 친절한 한국어 작문 전문가입니다."},
             {"role": "user", "content": question}
