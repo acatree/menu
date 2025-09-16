@@ -8,7 +8,8 @@ openai.api_key = None  # Flask에서 받은 API 키로 runtime에 세팅
 
 def ask_question(question):
     response = openai.chat.completions.create(
-        model="gpt-3.5-turbo",
+        model="gpt-5-mini",
+        #model="gpt-3.5-turbo",
         messages=[
             {"role": "system", "content": "당신은 친절한 한국어 작문 전문가입니다."},
             {"role": "user", "content": question}
@@ -19,7 +20,7 @@ def ask_question(question):
     return response.choices[0].message.content.strip()
 
 def blogposting(topic):
-    question = f"주제: [{topic}]\n200 단어 분량의 유튜브 숏 대본을 작성하세요. 반드시 한국어로 작성하세요."
+    question = f"주제: [{topic}]\n800 단어 분량의 유튜브 숏 대본을 작성하세요. 반드시 한국어로 작성하세요."
     return ask_question(question)
 
 def generate_latex(TOPIC1, num_list):
