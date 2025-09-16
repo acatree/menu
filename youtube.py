@@ -8,7 +8,8 @@ from openai import OpenAI
 def generate_script(api_key, topic):
     client = OpenAI(api_key=api_key)    
     response = client.chat.completions.create(
-        model="gpt-3.5-turbo",
+        model="gpt-5-mini",
+        #model="gpt-3.5-turbo",
         messages=[
             {"role": "system", "content": "You are a helpful assistant."},
             {"role": "user", "content": f"'{topic}'에 대해 한국어로 1분 길이의 흥미로운 스크립트를 작성하세요."}
