@@ -4,7 +4,6 @@ import subprocess
 import os
 from openai import OpenAI
 
-# 1️⃣ 스크립트 생성
 def generate_script(api_key, topic):
     client = OpenAI(api_key=api_key)
     
@@ -12,7 +11,7 @@ def generate_script(api_key, topic):
         model="gpt-5-mini",
         messages=[
             {"role": "system", "content": "You are a helpful assistant."},
-            {"role": "user", "content": f"'{topic}'에 대해 한국어로 1분 길이의 흥미로운 스크립트를 작성하세요."}
+            {"role": "user", "content": f"'{topic}'에 대해 한국어로 2분 길이의 흥미로운 스크립트를 작성하세요."}
         ],
         max_completion_tokens=250  # ✅ 최신 SDK용
     )
@@ -20,13 +19,11 @@ def generate_script(api_key, topic):
     # GPT-5-mini는 choices[0].message.content
     return response.choices[0].message.content.strip()
 
-# 2️⃣ TTS 변환
 def script_to_mp3(script, filename):
     tts = gTTS(text=script, lang='ko')
     tts.save(filename)
     return filename
 
-# 3️⃣ 이미지 생성
 def generate_images(api_key, topic, count=5):
     client = OpenAI(api_key=api_key)
     image_files = []
@@ -46,7 +43,6 @@ def generate_images(api_key, topic, count=5):
 
     return image_files
 
-# 4️⃣ 영상 생성
 def create_video(images, audio_file, script, output_file="output.mp4"):
     # 이미지 목록 파일 생성
     with open("images.txt", "w", encoding="utf-8") as f:
@@ -76,7 +72,6 @@ def create_video(images, audio_file, script, output_file="output.mp4"):
 
     return output_file
 
-# 5️⃣ 전체 영상 생성
 def create_youtube_short(api_key, topic, num_images=1):
     script = generate_script(api_key, topic)
     audio_file = script_to_mp3(script, "output.mp3")
