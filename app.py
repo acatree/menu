@@ -6,7 +6,6 @@ from ebook import generate_latex, openai
 import subprocess
 import youtube  # youtube.py
 
-
 app = Flask(__name__)
 # ===== 기본 데이터 =====
 # 데이터 파일 경로
