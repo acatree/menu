@@ -1,43 +1,72 @@
 import openai
-openai.api_key = 
-openai.api_key = "[your_opne_ai_api_token]"
-def generate_script():
+import requests
+from gtts import gTTS
+import subprocess
+import os
+
+def generate_script(api_key, topic):
+    openai.api_key = api_key
     response = openai.Completion.create(
         engine="gpt-3.5-turbo-instruct",
-        prompt="[만들고 싶은 내용을 적으세요. 예) Generate a one-minute paragraph about technology trends.]",
-        max_tokens=150
+        prompt=f"'{topic}'에 대해 한국어로 1분 길이의 흥미로운 스크립트를 작성하세요.",
+        max_tokens=250
     )
     return response.choices[0].text.strip()
 
-script = generate_script()
-print(script)
-
-
-from gtts import gTTS
-
 def script_to_mp3(script, filename):
-    tts = gTTS(text=script, lang='en')
+    tts = gTTS(text=script, lang='ko')
     tts.save(filename)
-    print(f'Audio content written to file {filename}')
+    return filename
 
-script_to_mp3(script, 'output.mp3')
+def generate_images(api_key, topic, count=5):
+    openai.api_key = api_key
+    image_files = []
+    for i in range(count):
+        response = openai.Image.create(
+            prompt=f"{topic}, 한국 스타일, 시네마틱 느낌, variation {i+1}",
+            n=1,
+            size="1024x1024"
+        )
+        image_url = response['data'][0]['url']
+        img_data = requests.get(image_url).content
+        filename = f"image_{i+1}.png"
+        with open(filename, 'wb') as handler:
+            handler.write(img_data)
+        image_files.append(filename)
+    return image_files
 
+def create_video(images, audio_file, script, output_file="output.mp4"):
+    # 이미지 목록 파일 생성
+    with open("images.txt", "w", encoding="utf-8") as f:
+        for img in images:
+            f.write(f"file '{img}'\n")
+            f.write("duration 3\n")  # 각 이미지 3초씩 표시
+        f.write(f"file '{images[-1]}'\n")  # 마지막 이미지 고정
 
-import openai
+    # 자막 파일 (SRT) 생성
+    with open("subtitles.srt", "w", encoding="utf-8") as srt:
+        srt.write("1\n00:00:00,000 --> 00:00:59,000\n")
+        srt.write(script + "\n")
 
-def generate_image(prompt, filename):
-    response = openai.Image.create(
-        prompt=prompt,
-        n=1,
-        size="1024x1024"
-    )
-    image_url = response['data'][0]['url']
-    # Download the image
-    import requests
-    img_data = requests.get(image_url).content
-    with open(filename, 'wb') as handler:
-        handler.write(img_data)
-    print(f'Image saved to {filename}')
-generate_image("[만들고 싶은 이미지 설명을 적으세요. 예) A futuristic depiction of technology trends]", "cover_image.png")
+    # 영상 합성 (이미지 + 오디오)
+    subprocess.run([
+        "ffmpeg", "-y", "-f", "concat", "-safe", "0",
+        "-i", "images.txt", "-i", audio_file,
+        "-c:v", "libx264", "-c:a", "aac", "-b:a", "192k",
+        "-shortest", "temp.mp4"
+    ])
 
-ffmpeg -loop 1 -i cover_image.png -i output.mp3 -c:v libx264 -c:a aac -b:a 192k -shortest output.mp4
+    # 자막 입히기 (burn-in)
+    subprocess.run([
+        "ffmpeg", "-y", "-i", "temp.mp4", "-vf", "subtitles=subtitles.srt",
+        "-c:a", "copy", output_file
+    ])
+
+    return output_file
+
+def create_youtube_short(api_key, topic, num_images=5):
+    script = generate_script(api_key, topic)
+    audio_file = script_to_mp3(script, "output.mp3")
+    images = generate_images(api_key, topic, count=num_images)
+    video_file = create_video(images, audio_file, script, "output.mp4")
+    return video_file
