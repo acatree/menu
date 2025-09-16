@@ -58,6 +58,11 @@ def index():
 
 
 
+@app.route("/index0", methods=["GET", "POST"])
+def index3():
+    return render_template("index0.html")
+
+
 @app.route("/index2", methods=["GET", "POST"])
 def index2():
     if request.method == "POST":
@@ -89,13 +94,10 @@ def index2():
     return render_template("index2.html")
 
 
-
-
 @app.route("/index3", methods=["GET", "POST"])
 def index3():
     return render_template("index3.html")
 
-# generate: 영상 생성 + 다운로드
 @app.route("/generate", methods=["POST"])
 def generate():
     api_key = request.form["api_key"]
