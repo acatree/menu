@@ -14,7 +14,7 @@ def ask_question(question):
             {"role": "user", "content": question}
         ],
         temperature=0.7,
-        max_complete_tokens=1024,  # ⚠ 여기만 바뀜
+        max_completion_tokens=1024,  # ⚠ 여기만 바뀜
     )
     return response.choices[0].message.content.strip()
 
