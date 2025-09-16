@@ -56,12 +56,9 @@ def index():
                                total_cal=total_cal, total_protein=total_protein)
     return render_template("index.html", result=None)
 
-
-
 @app.route("/index0", methods=["GET", "POST"])
-def index3():
+def index0():
     return render_template("index0.html")
-
 
 @app.route("/index2", methods=["GET", "POST"])
 def index2():
@@ -93,7 +90,6 @@ def index2():
 
     return render_template("index2.html")
 
-
 @app.route("/index3", methods=["GET", "POST"])
 def index3():
     return render_template("index3.html")
@@ -110,7 +106,6 @@ def generate():
         return send_file(output_file, as_attachment=True)
     except Exception as e:
         return f"<h2>에러 발생</h2><pre>{e}</pre>"
-
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5001, debug=True)
