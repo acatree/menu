@@ -4,6 +4,8 @@ from pulp import *
 import os
 from ebook import generate_latex, openai
 import subprocess
+import youtube  # youtube.py
+
 
 app = Flask(__name__)
 # ===== 기본 데이터 =====
@@ -85,6 +87,34 @@ def index2():
             return send_file(tex_path, as_attachment=True)
 
     return render_template("index2.html")
+
+
+
+@app.route("/index3", methods=["GET", "POST"])
+def index3():
+    with open("index3.html", "r", encoding="utf-8") as f:
+        return f.read()
+
+@app.route("/generate", methods=["POST"])
+def generate():
+    api_key = request.form["api_key"]
+    topic = request.form["topic"]
+    num_images = int(request.form["num_images"])
+
+    try:
+        output_file = youtube.create_youtube_short(api_key, topic, num_images)
+        return f"""
+        <h2>영상 생성 완료!</h2>
+        <p>주제: {topic}</p>
+        <video width="480" controls>
+          <source src="{output_file}" type="video/mp4">
+        </video>
+        <p>저장 파일명: {output_file}</p>
+        """
+    except Exception as e:
+        return f"<h2>에러 발생</h2><pre>{e}</pre>"
+
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5001, debug=True)
