@@ -29,7 +29,8 @@ def generate_images(api_key, topic, count=5):
     
     for i in range(count):
         response = client.images.generate(
-            model="gpt-image-1",
+            #model="gpt-image-1",
+            model="gpt-4o-image",  # Use the GPT-4o Image Generation model                    
             prompt=f"{topic}, 한국 스타일, 시네마틱 느낌, variation {i+1}",
             size="1024x1024"
         )
