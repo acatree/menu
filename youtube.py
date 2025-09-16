@@ -8,7 +8,7 @@ def generate_script(api_key, topic):
     
     response = client.chat.completions.create(
         #model="gpt-5-mini",
-        model="gpt-4o-mini",
+        model="gpt-image-1",
         messages=[
             {"role": "system", "content": "You are a helpful assistant."},
             {"role": "user", "content": f"'{topic}'에 대해 한국어로 2분 길이의 흥미로운 스크립트를 작성하세요."}
