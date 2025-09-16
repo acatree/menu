@@ -91,12 +91,11 @@ def index2():
 
 
 
-
 @app.route("/index3", methods=["GET", "POST"])
 def index3():
-    with open("index3.html", "r", encoding="utf-8") as f:
-        return f.read()
+    return render_template("index3.html")
 
+# generate: 영상 생성 + 다운로드
 @app.route("/generate", methods=["POST"])
 def generate():
     api_key = request.form["api_key"]
@@ -105,7 +104,7 @@ def generate():
 
     try:
         output_file = youtube.create_youtube_short(api_key, topic, num_images)
-        # ✅ 자동 다운로드
+        # 자동 다운로드
         return send_file(output_file, as_attachment=True)
     except Exception as e:
         return f"<h2>에러 발생</h2><pre>{e}</pre>"
