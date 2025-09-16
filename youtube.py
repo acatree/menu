@@ -5,13 +5,16 @@ import subprocess
 import os
 
 def generate_script(api_key, topic):
-    openai.api_key = api_key
-    response = openai.Completion.create(
-        engine="gpt-3.5-turbo-instruct",
-        prompt=f"'{topic}'에 대해 한국어로 1분 길이의 흥미로운 스크립트를 작성하세요.",
+    client = OpenAI(api_key=api_key)    
+    response = client.chat.completions.create(
+        model="gpt-3.5-turbo",
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "user", "content": f"'{topic}'에 대해 한국어로 1분 길이의 흥미로운 스크립트를 작성하세요."}
+        ],
         max_tokens=250
-    )
-    return response.choices[0].text.strip()
+    )    
+    return response.choices[0].message.content.strip()
 
 def script_to_mp3(script, filename):
     tts = gTTS(text=script, lang='ko')
@@ -19,20 +22,23 @@ def script_to_mp3(script, filename):
     return filename
 
 def generate_images(api_key, topic, count=5):
-    openai.api_key = api_key
+    client = OpenAI(api_key=api_key)
     image_files = []
+    
     for i in range(count):
-        response = openai.Image.create(
+        response = client.images.generate(
+            model="gpt-image-1",
             prompt=f"{topic}, 한국 스타일, 시네마틱 느낌, variation {i+1}",
-            n=1,
             size="1024x1024"
         )
-        image_url = response['data'][0]['url']
+        
+        image_url = response.data[0].url
         img_data = requests.get(image_url).content
         filename = f"image_{i+1}.png"
         with open(filename, 'wb') as handler:
             handler.write(img_data)
         image_files.append(filename)
+    
     return image_files
 
 def create_video(images, audio_file, script, output_file="output.mp4"):
