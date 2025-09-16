@@ -8,7 +8,7 @@ def generate_script(api_key, topic):
     
     response = client.chat.completions.create(
         #model="gpt-5-mini",
-        model="gpt-image-1",
+        model="gpt-4o-mini",
         messages=[
             {"role": "system", "content": "You are a helpful assistant."},
             {"role": "user", "content": f"'{topic}'에 대해 한국어로 2분 길이의 흥미로운 스크립트를 작성하세요."}
@@ -30,7 +30,7 @@ def generate_images(api_key, topic, count=5):
 
     for i in range(count):
         response = client.images.generate(
-            model="gpt-4o-image",  # 최신 이미지 모델
+            model="gpt-image-1",  # 최신 이미지 모델
             prompt=f"{topic}, 한국 스타일, 시네마틱 느낌, variation {i+1}",
             size="1024x1024"
         )
