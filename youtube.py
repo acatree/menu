@@ -1,8 +1,9 @@
 import requests
 from gtts import gTTS
 import subprocess
-import os
 from openai import OpenAI
+import os
+
 
 def generate_script(api_key, topic):
     client = OpenAI(api_key=api_key)
