@@ -23,7 +23,12 @@ def blogposting(topic):
     return ask_question(question)
 
 def generate_latex(TOPIC1, num_list):
-    question2 = f"'{TOPIC1}'와 관련된 서로 다른 {num_list}개의 소주제를 JSON 배열 형식으로 출력해주세요. 예: [\"주제1\", \"주제2\"]"
+    question2 = f"""
+'{TOPIC1}'와 관련된 서로 다른 {num_list}개의 소주제를 
+반드시 JSON 배열 형식으로 출력하세요.
+예: ["주제1", "주제2", "주제3"]
+다른 설명, 문장, 글자, 쉼표 없이 배열만 반환하세요.
+"""
     content2 = ask_question(question2)
     try:
         topic_list = json.loads(content2)
