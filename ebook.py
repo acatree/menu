@@ -3,6 +3,7 @@ from pylatex import Document, Command, NoEscape
 import openai
 import subprocess
 import ast
+import json
 
 openai.api_key = None  # Flask에서 받은 API 키로 runtime에 세팅
 
@@ -23,10 +24,10 @@ def blogposting(topic):
     return ask_question(question)
 
 def generate_latex(TOPIC1, num_list):
-    question2 = f"'{TOPIC1}'와 관련된 서로 다른 {num_list}개의 소주제를 한국어 목록으로 제시하세요. 출력은 Python 리스트 형식으로 해주세요."
+    question2 = f"'{TOPIC1}'와 관련된 서로 다른 {num_list}개의 소주제를 JSON 배열 형식으로 출력해주세요. 예: [\"주제1\", \"주제2\"]"
+    content2 = ask_question(question2)
     try:
-        content2 = ask_question(question2)
-        topic_list = ast.literal_eval(content2)  # 안전하게 리스트 변환
+        topic_list = json.loads(content2)
     except:
         topic_list = [TOPIC1 + f" 소주제 {i+1}" for i in range(num_list)]
 
