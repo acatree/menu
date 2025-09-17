@@ -6,7 +6,6 @@ import ast
 import json
 
 openai.api_key = None  # Flask에서 받은 API 키로 runtime에 세팅
-
 def ask_question(question):
     response = openai.chat.completions.create(
         model="gpt-4o-mini",  # 또는 gpt-3.5-turbo 등 최신 모델
