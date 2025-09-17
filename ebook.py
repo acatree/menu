@@ -19,7 +19,7 @@ def ask_question(question):
     return response.choices[0].message.content.strip()
 
 def blogposting(topic):
-    question = f"주제: [{topic}]\n350 단어 분량의 유튜브 숏 대본을 작성하세요. 반드시 한국어로 작성하세요."
+    question = f"주제: [{topic}]\n500 단어 분량의 관련된 글을 작성하세요. 전문적이고 친절한 문체로 작성 할 것이고 반드시 한국어로 작성하세요."
     return ask_question(question)
 
 def generate_latex(TOPIC1, num_list):
