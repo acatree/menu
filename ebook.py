@@ -32,7 +32,6 @@ def generate_latex(TOPIC1, num_list):
         topic_list = [TOPIC1 + f" 소주제 {i+1}" for i in range(num_list)]
 
     to_list = topic_list[:num_list]
-
     document = Document(documentclass='scrbook', document_options=['a5paper', 'pagesize', '10pt'])
     document.preamble.append(Command('usepackage', 'kotex'))
 
