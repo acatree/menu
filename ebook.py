@@ -38,7 +38,7 @@ def generate_latex(TOPIC1, num_list):
     to_list = topic_list[:num_list]
     document = Document(documentclass='scrbook', document_options=['a5paper', 'pagesize', '10pt'])
     document.preamble.append(Command('usepackage', 'kotex'))
-
+    
     title = f"{TOPIC1} 전자책"
     subtitle = f"{TOPIC1} 관련 소주제"
     document.append(NoEscape(r"\begin{titlepage}"))
