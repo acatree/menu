@@ -30,11 +30,17 @@ def generate_images(api_key, topic, count=5):
 
     for i in range(count):
         response = client.images.generate(
-            model="gpt-image-1",
+            model="dall-e-3",   # ✅ 개인 계정 사용 가능
             prompt=f"{topic}, 한국 스타일, 시네마틱 느낌, variation {i+1}",
             size="1024x1024"
         )
-        image_url = response.data[0].url
+
+        # URL 안전 체크
+        image_url = response.data[0].url if response.data and response.data[0].url else None
+        if not image_url:
+            raise ValueError("❌ 이미지 URL을 생성하지 못했습니다. 모델 권한 또는 응답을 확인하세요.")
+
+        # 이미지 저장
         img_data = requests.get(image_url).content
         filename = f"image_{i+1}.png"
         with open(filename, 'wb') as f:
