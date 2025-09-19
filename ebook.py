@@ -45,8 +45,7 @@ def generate_latex(TOPIC1, num_list):
     document.append(NoEscape(f"\\centering{{\\fontsize{{30}}{{48}}\\selectfont {title}}}\\\\"))
     document.append(NoEscape(f"\\centering{{\\fontsize{{18}}{{48}}\\selectfont {subtitle}}}\\\\"))
     document.append(NoEscape(r"\end{titlepage}"))
-
-    document.append(NoEscape(f"\tableofcontents"))
+    document.append(NoEscape(r"\tableofcontents"))
     document.append(NoEscape(r"\newpage"))
 
     for ii, topic in enumerate(to_list):
