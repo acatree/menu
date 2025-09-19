@@ -6,10 +6,8 @@ import os
 import imageio_ffmpeg as ffmpeg
 import wave
 
-
 def generate_script(api_key, topic):
-    client = OpenAI(api_key=api_key)
-    
+    client = OpenAI(api_key=api_key)    
     response = client.chat.completions.create(
         #model="gpt-5-mini",
         model="gpt-4o-mini",
@@ -18,8 +16,7 @@ def generate_script(api_key, topic):
             {"role": "user", "content": f"'{topic}'에 대해 한국어로 1분 길이의 흥미로운 스크립트를 작성하세요."}
         ],
         max_completion_tokens=250  # ✅ 최신 SDK용
-    )
-    
+    )    
     # GPT-5-mini는 choices[0].message.content
     return response.choices[0].message.content.strip()
 
@@ -39,12 +36,10 @@ def generate_images(api_key, topic, count=5):
             prompt=prompt,
             size="1024x1024"
         )
-
         # URL 안전 체크
         image_url = response.data[0].url if response.data and response.data[0].url else None
         if not image_url:
             raise ValueError("❌ 이미지 URL을 생성하지 못했습니다. 모델 권한 또는 응답을 확인하세요.")
-
         # 이미지 저장
         img_data = requests.get(image_url).content
         filename = f"image_{i+1}.png"
