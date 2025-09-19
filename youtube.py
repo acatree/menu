@@ -29,9 +29,10 @@ def generate_images(api_key, topic, count=5):
     image_files = []
 
     for i in range(count):
+        prompt = f"{topic}에 관한 스크립트 내용을 요약 및 시각적으로 표현한 장면, variation {i+1}"
         response = client.images.generate(
-            model="dall-e-3",   # ✅ 개인 계정 사용 가능
-            prompt=f"{topic}, 한국 스타일, 시네마틱 느낌, variation {i+1}",
+            model="dall-e-3",
+            prompt=prompt,
             size="1024x1024"
         )
 
