@@ -3,8 +3,8 @@ from gtts import gTTS
 import subprocess
 from openai import OpenAI
 import os
-import imageio_ffmpeg as ffmpeg
 import wave
+import imageio_ffmpeg as ffmpeg
 
 def generate_script(api_key, topic):
     client = OpenAI(api_key=api_key)    
