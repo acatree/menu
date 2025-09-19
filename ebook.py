@@ -4,6 +4,7 @@ import openai
 import subprocess
 import ast
 import json
+
 openai.api_key = None  # Flask에서 받은 API 키로 runtime에 세팅
 def ask_question(question):
     response = openai.chat.completions.create(
