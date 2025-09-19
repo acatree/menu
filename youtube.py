@@ -6,6 +6,7 @@ import os
 import imageio_ffmpeg as ffmpeg
 import wave
 
+
 def generate_script(api_key, topic):
     client = OpenAI(api_key=api_key)    
     response = client.chat.completions.create(
