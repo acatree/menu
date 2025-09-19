@@ -7,8 +7,6 @@ import wave
 import imageio_ffmpeg as ffmpeg
 from mutagen.mp3 import MP3
 
-
-
 def generate_script(api_key, topic):
     client = OpenAI(api_key=api_key)    
     response = client.chat.completions.create(
@@ -32,8 +30,12 @@ def generate_images(api_key, topic, count=5):
     client = OpenAI(api_key=api_key)
     image_files = []
 
-    for i in range(count):
-        prompt = f"{topic}에 관한 스크립트 내용을 요약 및 시각적으로 표현한 장면, variation {i+1}"
+    for i in range(count): 
+        prompt = (
+        f"{topic}에 관한 스크립트 내용을 요약 및 시각적으로 표현한 장면, variation {i+1}" 
+        f"직접적인 인물 이름이나 브랜드 대신 묘사적/추상적 스타일 사용, "
+        f"variation {i+1}"
+        )
         response = client.images.generate(
             model="dall-e-3",
             prompt=prompt,
@@ -52,13 +54,10 @@ def generate_images(api_key, topic, count=5):
 
     return image_files
 
-
 def get_audio_duration(filename):
     """오디오 파일 길이(초) 반환 (MP3 지원)"""
     audio = MP3(filename)
     return audio.info.length
-
-
 
 def create_video(images, audio_file, script, output_file="output.mp4"):
     ffmpeg_path = ffmpeg.get_ffmpeg_exe()
@@ -100,13 +99,10 @@ def create_video(images, audio_file, script, output_file="output.mp4"):
     ], check=True)
 
     return output_file
-
-    
+  
 def create_youtube_short(api_key, topic, num_images=1):
     script = generate_script(api_key, topic)
     audio_file = script_to_mp3(script, "output.mp3")
     images = generate_images(api_key, topic, count=num_images)
     video_file = create_video(images, audio_file, script, "output.mp4")
     return video_file
-
-
