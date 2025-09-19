@@ -46,7 +46,7 @@ def generate_latex(TOPIC1, num_list):
     document.append(NoEscape(f"\\centering{{\\fontsize{{18}}{{48}}\\selectfont {subtitle}}}\\\\"))
     document.append(NoEscape(r"\end{titlepage}"))
     document.append(NoEscape(r"\tableofcontents"))
-    document.append(NoEscape(r"\newpage"))
+    document.append(Command('newpage'))
 
     for ii, topic in enumerate(to_list):
         sectiontitle = f"\\chapter{{{topic}}}"
