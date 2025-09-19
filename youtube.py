@@ -5,6 +5,9 @@ from openai import OpenAI
 import os
 import wave
 import imageio_ffmpeg as ffmpeg
+from mutagen.mp3 import MP3
+
+
 
 def generate_script(api_key, topic):
     client = OpenAI(api_key=api_key)    
@@ -49,16 +52,17 @@ def generate_images(api_key, topic, count=5):
 
     return image_files
 
+
 def get_audio_duration(filename):
-    """오디오 파일 길이(초) 반환"""
-    with wave.open(filename, 'r') as f:
-        frames = f.getnframes()
-        rate = f.getframerate()
-        duration = frames / float(rate)
-    return duration
+    """오디오 파일 길이(초) 반환 (MP3 지원)"""
+    audio = MP3(filename)
+    return audio.info.length
+
+
 
 def create_video(images, audio_file, script, output_file="output.mp4"):
-    ffmpeg_path = ffmpeg.get_ffmpeg_exe()  # 설치된 ffmpeg 경로 반환
+    ffmpeg_path = ffmpeg.get_ffmpeg_exe()
+
     # 1️⃣ 오디오 길이 확인
     audio_length = get_audio_duration(audio_file)
     num_images = len(images)
@@ -76,7 +80,6 @@ def create_video(images, audio_file, script, output_file="output.mp4"):
     # 3️⃣ 자막 파일 생성 (SRT)
     with open("subtitles.srt", "w", encoding="utf-8") as srt:
         srt.write("1\n00:00:00,000 --> ")
-        # SRT 형식: HH:MM:SS,ms
         minutes = int(audio_length // 60)
         seconds = int(audio_length % 60)
         srt.write(f"00:{minutes:02d}:{seconds:02d},000\n")
@@ -97,6 +100,7 @@ def create_video(images, audio_file, script, output_file="output.mp4"):
     ], check=True)
 
     return output_file
+
     
 def create_youtube_short(api_key, topic, num_images=1):
     script = generate_script(api_key, topic)
@@ -104,3 +108,5 @@ def create_youtube_short(api_key, topic, num_images=1):
     images = generate_images(api_key, topic, count=num_images)
     video_file = create_video(images, audio_file, script, "output.mp4")
     return video_file
+
+
