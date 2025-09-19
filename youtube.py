@@ -3,6 +3,8 @@ from gtts import gTTS
 import subprocess
 from openai import OpenAI
 import os
+import imageio_ffmpeg as ffmpeg
+
 def generate_script(api_key, topic):
     client = OpenAI(api_key=api_key)
     
@@ -51,31 +53,33 @@ def generate_images(api_key, topic, count=5):
     return image_files
 
 def create_video(images, audio_file, script, output_file="output.mp4"):
-    # 이미지 목록 파일 생성
+    ffmpeg_path = ffmpeg.get_ffmpeg_exe()  # 설치된 ffmpeg 경로 반환
+
+    # 1️⃣ 이미지 목록 파일 생성
     with open("images.txt", "w", encoding="utf-8") as f:
         for img in images:
             f.write(f"file '{img}'\n")
             f.write("duration 3\n")
         f.write(f"file '{images[-1]}'\n")  # 마지막 이미지 고정
 
-    # 자막 파일 생성 (SRT)
+    # 2️⃣ 자막 파일 (SRT) 생성
     with open("subtitles.srt", "w", encoding="utf-8") as srt:
         srt.write("1\n00:00:00,000 --> 00:00:59,000\n")
         srt.write(script + "\n")
 
-    # ffmpeg: 이미지 + 오디오 합성
+    # 3️⃣ ffmpeg: 이미지 + 오디오 합성
     subprocess.run([
-        "ffmpeg", "-y", "-f", "concat", "-safe", "0",
+        ffmpeg_path, "-y", "-f", "concat", "-safe", "0",
         "-i", "images.txt", "-i", audio_file,
         "-c:v", "libx264", "-c:a", "aac", "-b:a", "192k",
         "-shortest", "temp.mp4"
-    ])
+    ], check=True)
 
-    # ffmpeg: 자막 입히기
+    # 4️⃣ ffmpeg: 자막 입히기 (burn-in)
     subprocess.run([
-        "ffmpeg", "-y", "-i", "temp.mp4", "-vf", "subtitles=subtitles.srt",
+        ffmpeg_path, "-y", "-i", "temp.mp4", "-vf", "subtitles=subtitles.srt",
         "-c:a", "copy", output_file
-    ])
+    ], check=True)
 
     return output_file
 
