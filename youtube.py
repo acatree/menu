@@ -76,26 +76,12 @@ def create_video(images, audio_file, script, output_file="output.mp4"):
         f.write(f"file '{images[-1]}'\n")
         f.write(f"duration {duration_per_image}\n")
 
-    # 3️⃣ 자막 파일 생성 (SRT)
-    with open("subtitles.srt", "w", encoding="utf-8") as srt:
-        srt.write("1\n00:00:00,000 --> ")
-        minutes = int(audio_length // 60)
-        seconds = int(audio_length % 60)
-        srt.write(f"00:{minutes:02d}:{seconds:02d},000\n")
-        srt.write(script + "\n")
-
-    # 4️⃣ ffmpeg: 이미지 + 오디오 합성
+    # 4️⃣ ffmpeg: 이미지 + 오디오 합성 (최종본)
     subprocess.run([
         ffmpeg_path, "-y", "-f", "concat", "-safe", "0",
         "-i", "images.txt", "-i", audio_file,
         "-c:v", "libx264", "-c:a", "aac", "-b:a", "192k",
-        "-shortest", "temp.mp4"
-    ], check=True)
-
-    # 5️⃣ ffmpeg: 자막 입히기 (burn-in)
-    subprocess.run([
-        ffmpeg_path, "-y", "-i", "temp.mp4", "-vf", "subtitles=subtitles.srt",
-        "-c:a", "copy", output_file
+        "-shortest", output_file
     ], check=True)
 
     return output_file
