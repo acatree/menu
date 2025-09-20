@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>상담 이미지 확인</title>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        #image { width: 300px; margin-top: 20px; display:none; }
+        #message { margin-top: 10px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>상담 이미지 확인</h1>
+    
+    <p id="date_time"></p>
+    
+    <label for="zodiac">띠를 선택하세요:</label>
+    <select id="zodiac">
+        <option value="자">자</option>
+        <option value="축">축</option>
+        <option value="인">인</option>
+        <option value="묘">묘</option>
+        <option value="진">진</option>
+        <option value="사">사</option>
+        <option value="오">오</option>
+        <option value="미">미</option>
+        <option value="신">신</option>
+        <option value="유">유</option>
+        <option value="술">술</option>
+        <option value="해">해</option>
+    </select>
+    
+    <button onclick="showImage()">확인</button>
+    
+    <div id="result">
+        <img id="image" src="" alt="상담 이미지">
+        <p id="message"></p>
+    </div>
+    
+    <script>
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = now.getMonth() + 1;
+        const day = now.getDate();
+        const hours = now.getHours();
+        const minutes = now.getMinutes();
+        
+        const dateStr = `${year}-${month}-${day}`;
+        const timeStr = `${hours}시 ${minutes}분`;
+        
+        document.getElementById("date_time").innerText = 
+            `오늘 날짜: ${dateStr}, 접속 시간: ${timeStr}`;
+        
+        // 12지 시간대 계산
+        const timeZodiacs = ["자시","축시","인시","묘시","진시","사시","오시","미시","신시","유시","술시","해시"];
+        function getTimeZodiac(hour) {
+            return timeZodiacs[Math.floor((hour + 1) / 2) % 12];
+        }
+        
+        // 날짜 기준 이미지 배열 (예시)
+        const imagesByDate = [
+            "images/image1.png","images/image2.png","images/image3.png",
+            "images/image4.png","images/image5.png","images/image6.png",
+            "images/image7.png","images/image8.png","images/image9.png",
+            "images/image10.png","images/image11.png","images/image12.png"
+        ];
+        
+        function showImage() {
+            const userZodiac = document.getElementById("zodiac").value;
+            const timeZodiac = getTimeZodiac(hours);
+            
+            // 오늘 날짜 기준 이미지 선택 (월 기준 예시)
+            const monthIndex = now.getMonth();
+            const imageSrc = imagesByDate[monthIndex];
+            
+            document.getElementById("image").src = imageSrc;
+            document.getElementById("image").style.display = "block";
+            document.getElementById("message").innerText =
+                `오늘 날짜: ${dateStr}, 접속 시간대: ${timeZodiac}, 선택한 띠: ${userZodiac}`;
+        }
+    </script>
+</body>
+</html>
