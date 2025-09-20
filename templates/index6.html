@@ -7,24 +7,26 @@
         body { 
             font-family: Arial; 
             padding: 20px; 
-            font-size: 20px; /* 전체 글자 크기 키움 */
+            font-size: 40px; /* 전체 글자 크기 두 배 이상 */
         }
         #image { 
-            width: 600px;  /* 이미지 크기 2배 이상 */
+            width: 100%;        /* 화면에 맞게 */
+            max-width: 1000px;  /* 최대 1000px */
+            height: auto;       /* 세로 비율 자동 */
             margin-top: 20px; 
-            display:none; 
+            display: none; 
         }
         #message { 
-            margin-top: 15px; 
+            margin-top: 20px; 
             font-weight: bold; 
-            font-size: 22px; /* 메시지는 조금 더 크게 */
+            font-size: 44px; /* 메시지는 더 크게 */
         }
         h1 {
-            font-size: 28px;
+            font-size: 56px;
         }
         select, button {
-            font-size: 20px;
-            padding: 5px 10px;
+            font-size: 36px;
+            padding: 10px 20px;
         }
     </style>
 </head>
@@ -33,18 +35,18 @@
     <p id="date_time"></p>    
     <label for="zodiac">띠를 선택하세요:</label>
     <select id="zodiac">
-        <option value="자">자(子)</option>
-        <option value="축">축(丑)</option>
-        <option value="인">인(寅)</option>
-        <option value="묘">묘(卯)</option>
-        <option value="진">진(辰)</option>
-        <option value="사">사(巳)</option>
-        <option value="오">오(午)</option>
-        <option value="미">미(未)</option>
-        <option value="신">신(申)</option>
-        <option value="유">유(酉)</option>
-        <option value="술">술(戌)</option>
-        <option value="해">해(亥)</option>
+        <option value="자(子)">자(子)</option>
+        <option value="축(丑)">축(丑)</option>
+        <option value="인(寅)">인(寅)</option>
+        <option value="묘(卯)">묘(卯)</option>
+        <option value="진(辰)">진(辰)</option>
+        <option value="사(巳)">사(巳)</option>
+        <option value="오(午)">오(午)</option>
+        <option value="미(未)">미(未)</option>
+        <option value="신(申)">신(申)</option>
+        <option value="유(酉)">유(酉)</option>
+        <option value="술(戌)">술(戌)</option>
+        <option value="해(亥)">해(亥)</option>
     </select>
     
     <button onclick="showImage()">확인</button>
@@ -69,8 +71,10 @@
             `오늘 날짜: ${dateStr}, 접속 시간: ${timeStr}`;
         
         // 12지 시간대 계산
-        const timeZodiacs = ["자시(子)", "축시(丑)", "인시(寅)", "묘시(卯)", "진시(辰)", "사시(巳)", 
-                             "오시(午)", "미시(未)", "신시(申)", "유시(酉)", "술시(戌)", "해시(亥)"];
+        const timeZodiacs = [
+            "자시(子)", "축시(丑)", "인시(寅)", "묘시(卯)", "진시(辰)", "사시(巳)", 
+            "오시(午)", "미시(未)", "신시(申)", "유시(酉)", "술시(戌)", "해시(亥)"
+        ];
         function getTimeZodiac(hour) {
             return timeZodiacs[Math.floor((hour + 1) / 2) % 12];
         }
@@ -105,5 +109,5 @@
                 `오늘 날짜: ${dateStr}, 접속 시간대: ${timeZodiac}, 선택한 띠: ${userZodiac}`;
         }
     </script>
-</body>
+</body>    
 </html>
