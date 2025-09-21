@@ -7,7 +7,6 @@ import subprocess
 import youtube  # youtube.py
 from article import generate_paper
 
-
 app = Flask(__name__)
 # ===== 기본 데이터 =====
 # 데이터 파일 경로
