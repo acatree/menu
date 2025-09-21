@@ -5,6 +5,8 @@ import os
 from ebook import generate_latex, openai
 import subprocess
 import youtube  # youtube.py
+from article import generate_paper
+
 
 app = Flask(__name__)
 # ===== 기본 데이터 =====
@@ -109,6 +111,30 @@ def generate():
 @app.route("/index6", methods=["GET", "POST"])
 def index6():
     return render_template("index6.html")
+
+@app.route("/index7", methods=["GET", "POST"])
+def index7():
+    error = None
+    if request.method == "POST":
+        try:
+            apikey = request.form["apikey"]
+            openai.api_key = apikey
+
+            title = request.form["title"]
+            topic = request.form["topic"]
+            num_list = int(request.form["num_list"])
+            structure = request.form["structure"]
+            references = int(request.form["references"])
+
+            tex_path = generate_paper(title, topic, num_list, structure, references)
+
+            return send_file(tex_path, as_attachment=True)
+
+        except Exception as e:
+            error = str(e)
+
+    return render_template("index7.html", error=error)
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5001, debug=True)
