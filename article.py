@@ -137,3 +137,62 @@ def generate_paper(title, topic, language="ko", references=10):
         f.write(doc.dumps())
 
     return tex_file, bib_file
+
+def generate_paper(title, topic, language="ko", references=10):
+    sections = ["서론", "관련 연구", "연구 방법", "실험 및 결과", "논의", "결론"]
+
+    # LaTeX 문서
+    doc = Document(documentclass='article', document_options=['12pt'])
+    doc.packages.append(Command('usepackage', 'kotex'))
+    doc.packages.append(Command('usepackage', 'setspace'))
+    doc.packages.append(Command('usepackage', 'geometry', options='margin=1in'))
+    doc.packages.append(Command('usepackage', 'graphicx'))
+
+    doc.preamble.append(Command('title', title))
+    doc.preamble.append(Command('author', "자동 생성 논문"))
+    doc.preamble.append(Command('date', NoEscape(r'\today')))
+    doc.append(NoEscape(r'\maketitle'))
+    doc.append(NoEscape(r'\tableofcontents'))
+    doc.append(Command('newpage'))
+
+    figure_counter = 1
+    table_counter = 1
+    generated_files = []
+
+    os.makedirs("figures", exist_ok=True)
+
+    for sec in sections:
+        doc.append(NoEscape(f"\\section{{{sec}}}"))
+        doc.append(NoEscape(write_section(sec, topic, language)))
+
+        # 그림 삽입
+        fig_path = f"figures/{sec.replace(' ','_')}_fig{figure_counter}.png"
+        fig_latex = generate_figure_image(sec, topic, figure_counter, language)
+        if fig_latex:
+            doc.append(NoEscape(fig_latex))
+            generated_files.append(fig_path)
+            figure_counter += 1
+
+        # 표 삽입
+        table_latex = generate_table(sec, topic, table_counter, language)
+        if table_latex:
+            doc.append(NoEscape(table_latex))
+            table_counter += 1
+
+        doc.append(Command('newpage'))
+
+    # BibTeX
+    bib_entries = generate_bibtex(topic, references, language)
+    bib_file = f"{title}_references.bib"
+    with open(bib_file, 'w', encoding='utf-8') as f:
+        f.write("\n\n".join(bib_entries))
+    generated_files.append(bib_file)
+
+    # LaTeX 파일 저장
+    os.makedirs("tex", exist_ok=True)
+    tex_file = os.path.join("tex", f"{title}.tex")
+    with open(tex_file, 'w', encoding='utf-8') as f:
+        f.write(doc.dumps())
+    generated_files.append(tex_file)
+
+    return generated_files
