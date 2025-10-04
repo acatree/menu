@@ -27,7 +27,7 @@ def ask_question(question, language="ko"):
 # 섹션 작성
 # ---------------------------
 def write_section(title, topic, language="ko"):
-    question = f"'{topic}' 주제에 대해 '{title}' 섹션을 작성하세요. 최소 300단어, 전문 학술 문체."
+    question = f"'{topic}' 주제에 대해 '{title}' 섹션을 작성하세요. 최소 500단어, 전문 학술 문체."
     return ask_question(question, language)
 
 # ---------------------------
