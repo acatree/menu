@@ -137,7 +137,3 @@ def generate_paper(title, topic, language="ko", references=10):
         f.write(doc.dumps())
 
     return tex_file, bib_file
-
-# ---------------------------
-# 실행 예시
-# ---------------------------
