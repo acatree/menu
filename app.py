@@ -107,27 +107,37 @@ def generate():
     except Exception as e:
         return f"<h2>에러 발생</h2><pre>{e}</pre>"
 
+
 @app.route("/index6", methods=["GET", "POST"])
 def index6():
     return render_template("index6.html")
+
 
 @app.route("/index7", methods=["GET", "POST"])
 def index7():
     error = None
     if request.method == "POST":
         try:
-            apikey = request.form["apikey"]
+            apikey = request.form.get("apikey")
             openai.api_key = apikey
 
-            title = request.form["title"]
-            topic = request.form["topic"]
-            num_list = int(request.form["num_list"])
-            structure = request.form["structure"]
-            references = int(request.form["references"])
+            title = request.form.get("title")
+            topic = request.form.get("topic")
+            references = int(request.form.get("references", 10))
+            language = request.form.get("language", "ko")  # optional
 
-            tex_path = generate_paper(title, topic, num_list, structure, references)
+            generated_files = generate_paper(title, topic, language=language, references=references)
 
-            return send_file(tex_path, as_attachment=True)
+            # ZIP all generated files
+            import zipfile
+            from io import BytesIO
+            memory_file = BytesIO()
+            with zipfile.ZipFile(memory_file, 'w') as zf:
+                for file_path in generated_files:
+                    zf.write(file_path, os.path.basename(file_path))
+            memory_file.seek(0)
+
+            return send_file(memory_file, attachment_filename=f"{title}.zip", as_attachment=True)
 
         except Exception as e:
             error = str(e)
