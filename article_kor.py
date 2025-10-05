@@ -23,6 +23,32 @@ def ask_question(question, language="ko"):
     )
     return response.choices[0].message.content.strip()
 
+def generate_images(api_key, topic, count=5):
+    client = OpenAI(api_key=api_key)
+    image_files = []
+
+    for i in range(count): 
+        prompt = (
+            f"{topic}에 관한 스크립트 내용을 요약 및 시각적으로 표현한 장면, "
+            f"직접적인 인물 이름이나 브랜드 대신 묘사적/추상적 스타일 사용, "
+            f"variation {i+1}"
+        )
+        response = client.images.generate(
+            model="dall-e-3",
+            prompt=prompt,
+            size="1024x1024"
+        )
+        image_url = response.data[0].url if response.data and response.data[0].url else None
+        if not image_url:
+            raise ValueError("❌ 이미지 URL을 생성하지 못했습니다.")
+        img_data = requests.get(image_url).content
+        filename = f"image_{i+1}.png"
+        with open(filename, 'wb') as f:
+            f.write(img_data)
+        image_files.append(filename)
+
+    return image_files
+    
 # ---------------------------
 # 섹션 작성
 # ---------------------------
