@@ -122,7 +122,7 @@ def generate_paper(title, topic, language="ko", references=10):
     doc.packages.append(Command('usepackage', 'graphicx'))
 
     doc.preamble.append(Command('title', title))
-    doc.preamble.append(Command('author', "자동 생성 논문"))
+    doc.preamble.append(Command('author', "강상규"))
     doc.preamble.append(Command('date', NoEscape(r'\today')))
     doc.append(NoEscape(r'\maketitle'))
     doc.append(NoEscape(r'\tableofcontents'))
