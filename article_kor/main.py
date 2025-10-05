@@ -1,9 +1,11 @@
+import sys, os
+sys.path.append(os.path.dirname(__file__))  # main.py 기준
+from pylatex import Document, Command, NoEscape
+import os, re
 from . import openai_utils
 from . import text_utils
 from . import figure_utils
 from . import bib_utils
-from pylatex import Document, Command, NoEscape
-import os, re
 
 def generate_paper(topic, api_key=None):
     """
