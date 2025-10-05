@@ -1,6 +1,5 @@
 from pylatex import Document, Command, NoEscape
-import zipfile
-import os
+import zipfile, os, re
 import openai_utils, text_utils, figure_utils, bib_utils
 
 def generate_paper(title, topic, api_key=None):
@@ -34,19 +33,25 @@ def generate_paper(title, topic, api_key=None):
     bib_keys = [re.search(r'@.*?\{(.*?),', e).group(1) for e in bib_entries if re.search(r'@.*?\{(.*?),', e)]
 
     # 섹션 작성
-    sections = ["서론","관련 연구","연구 방법","실험 및 결과","논의","결론"]
+    sections = ["서론","관련 연구","연구 방법","분석","결론"]
     for sec in sections:
         doc.append(NoEscape(f"\\section{{{sec}}}"))
-        text = openai_utils.ask_question(f"'{topic}' '{sec}' 섹션 작성, 최소 300단어", api_key=api_key)
-        text = text_utils.clean_section_text(text, remove_title=True, section_title=sec)
+
+        # 분석 단일 섹션 생성
+        if sec == "분석":
+            text_exp = openai_utils.ask_question(f"'{topic}' 분석 섹션 작성, 실험 및 결과 + 논의 포함, 최소 400단어", api_key=api_key)
+            text = text_utils.clean_section_text(text_exp, remove_title=True, section_title="")
+        else:
+            text_exp = openai_utils.ask_question(f"'{topic}' '{sec}' 섹션 작성, 최소 300단어", api_key=api_key)
+            text = text_utils.clean_section_text(text_exp, remove_title=True, section_title=sec)
+
         text = text_utils.insert_cites(text, bib_keys, prob=0.2)
         doc.append(NoEscape(text))
 
-        # 그래프, 이미지, 표
-        if sec in ["실험 및 결과","연구 방법"]:
-            fig = figure_utils.generate_graph(sec, topic, api_key=api_key)
-            if fig:
-                figure_utils.insert_figure(doc, fig, f"{sec} 관련 그래프")
+        # 그래프, 표, 이미지
+        fig = figure_utils.generate_graph(sec, topic, api_key=api_key)
+        if fig:
+            figure_utils.insert_figure(doc, fig, f"{sec} 관련 그래프")
 
         table = figure_utils.generate_table(sec, topic, api_key=api_key)
         if table:
@@ -62,12 +67,15 @@ def generate_paper(title, topic, api_key=None):
 
         doc.append(Command('newpage'))
 
+    # 참고문헌
     doc.append(NoEscape(r"\bibliographystyle{apalike}"))
     doc.append(NoEscape(r"\bibliography{references}"))
 
-    # LaTeX 저장 및 ZIP
+    # LaTeX 저장
     tex_file = f"{title}.tex"
     doc.generate_tex(tex_file.replace(".tex",""))
+
+    # 최종 ZIP 생성 (tex, bib, images, graphs 함께)
     zip_file = f"{title}_files.zip"
     with zipfile.ZipFile(zip_file,'w',zipfile.ZIP_DEFLATED) as zf:
         zf.write(tex_file)
@@ -75,5 +83,6 @@ def generate_paper(title, topic, api_key=None):
         for folder in ["images","graphs"]:
             if os.path.exists(folder):
                 for file in os.listdir(folder):
-                    zf.write(os.path.join(folder,file), arcname=os.path.join(folder,file))
+                    zf.write(os.path.join(folder,file), arcname=file)  # 폴더 구조 없이 포함
+
     return tex_file, "references.bib", zip_file
