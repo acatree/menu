@@ -4,7 +4,6 @@ from . import figure_utils
 from . import bib_utils
 from pylatex import Document, Command, NoEscape
 import os, re
-import openai_utils, text_utils, figure_utils, bib_utils
 
 def generate_paper(topic, api_key=None):
     """
