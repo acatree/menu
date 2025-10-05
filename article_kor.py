@@ -24,12 +24,15 @@ def ask_question(question, language="ko", api_key=None):
     return response.choices[0].message.content.strip()
 
 # ---------------------------
-# 텍스트 클린업 (첫줄 섹션 제목 제거)
+# 텍스트 클린업
 # ---------------------------
 def clean_section_text(text, section_title=None):
     lines = text.splitlines()
-    if lines and section_title and section_title in lines[0]:
+    # 첫 줄이 섹션 제목과 같으면 제거
+    if lines and section_title and section_title.strip() in lines[0]:
         lines = lines[1:]
+    # 공백 줄 제거
+    lines = [line for line in lines if line.strip() != '']
     text = '\n'.join(lines)
     text = re.sub(r'^#+\s*', '', text, flags=re.MULTILINE)  # #, ##, ### 제거
     text = text.replace('**', '')  # 강조 제거
@@ -47,18 +50,14 @@ def extract_keywords(text):
 # ---------------------------
 def generate_images(api_key, topic, section_title, count=1):
     openai.api_key = api_key
-    os.makedirs("figures", exist_ok=True)
     image_files = []
-
-    # 파일명 영어화
-    section_title_en = re.sub(r'\s+', '_', section_title)
-    section_title_en = re.sub(r'[^\w_]', '', section_title_en)
 
     for i in range(count):
         prompt = (
             f"'{topic}' 주제의 '{section_title}' 섹션에 적합한 학술용 시각 자료 생성. "
-            "논문용 데이터 시각화, 그래프, 구조 다이어그램, 실험 결과 시각화 등. "
-            "직접적인 인물/브랜드 제외, 깔끔한 흑백/스케치 스타일"
+            "논문에 들어갈 수 있는 형태의 데이터 시각화, 그래프, 구조 다이어그램, 실험 결과 시각화 등. "
+            "직접적인 인물 이름이나 브랜드는 제외. "
+            "깔끔하고 전문적인 스타일, 발표/논문용 그림 느낌. 흑백그림, 스케치 등"
         )
         for attempt in range(3):
             response = openai.images.generate(
@@ -73,7 +72,7 @@ def generate_images(api_key, topic, section_title, count=1):
             print(f"[이미지 생성 실패] {section_title}")
             continue
         img_data = requests.get(image_url).content
-        filename = f"figures/{section_title_en}_img{i+1}.png"
+        filename = f"{section_title.replace(' ','_')}_img{i+1}.png"
         with open(filename, 'wb') as f:
             f.write(img_data)
         image_files.append(filename)
@@ -84,15 +83,12 @@ def generate_images(api_key, topic, section_title, count=1):
 # ---------------------------
 def generate_graph(section_title, topic, figure_number=1, language="ko", api_key=None):
     openai.api_key = api_key
-    os.makedirs("figures", exist_ok=True)
-
-    section_title_en = re.sub(r'\s+', '_', section_title)
-    section_title_en = re.sub(r'[^\w_]', '', section_title_en)
-    fig_path = f"figures/{section_title_en}_fig{figure_number}.png"
+    fig_path = f"{section_title.replace(' ','_')}_fig{figure_number}.png"
 
     question = (
         f"'{topic}' 주제 관련 '{section_title}' 섹션용 matplotlib 그래프 코드 생성. "
-        f"python 실행 가능, plt.savefig('{fig_path}') 포함"
+        f"그림 번호 {figure_number}, 캡션 {language}. "
+        "python 실행 가능한 완전한 코드로 출력, plt.savefig('{fig_path}') 포함"
     )
     code = ask_question(question, language, api_key=api_key)
 
@@ -123,11 +119,11 @@ def insert_figure(doc, file_name, caption_text):
 def generate_table(section_title, topic, language="ko", api_key=None):
     prompt = (
         f"'{topic}' 주제의 '{section_title}' 섹션 관련 LaTeX tabular 표 생성. "
-        "오직 tabular 환경만 출력, ```latex``` 블록 제거"
+        "오직 tabular 환경만 출력, 코드 블록(```) 제거"
     )
     table_code = ask_question(prompt, language, api_key=api_key)
-    table_code = re.sub(r'```(?:latex)?', '', table_code)
-    return table_code.strip()
+    table_code = table_code.replace("```latex", "").replace("```", "")
+    return table_code
 
 # ---------------------------
 # BibTeX 생성 및 정제
@@ -153,7 +149,7 @@ def insert_cites(text, bib_keys, prob=0.2):
     return ' '.join(sentences)
 
 # ---------------------------
-# KCI 스타일 논문 생성 (랜덤 그림/표/그래프)
+# KCI 스타일 논문 생성
 # ---------------------------
 def generate_paper(title, topic, api_key=None, language="ko", references=10,
                    graph_prob=0.5, image_prob=0.3, table_prob=0.2):
@@ -167,6 +163,7 @@ def generate_paper(title, topic, api_key=None, language="ko", references=10,
     doc.packages.append(Command('usepackage', 'caption'))
     doc.packages.append(Command('usepackage', 'booktabs'))
     doc.packages.append(Command('usepackage', 'natbib'))
+    doc.packages.append(Command('usepackage', 'amsmath'))
 
     # 제목/저자
     doc.preamble.append(Command('title', title))
@@ -200,23 +197,32 @@ def generate_paper(title, topic, api_key=None, language="ko", references=10,
 
     for sec in sections:
         doc.append(NoEscape(f"\\section{{{sec}}}"))
-        section_text = clean_section_text(ask_question(f"'{topic}' 주제에 대해 '{sec}' 섹션 작성, 최소 300단어", language, api_key=api_key))
+        section_text = clean_section_text(
+            ask_question(
+                f"'{topic}' 주제에 대해 '{sec}' 섹션 작성, 최소 300단어. "
+                + ("수학적 이론과 분석 결과 포함, 그래프/표 필요"
+                   if sec in ["실험 및 결과", "연구 방법"] else ""),
+                language,
+                api_key=api_key
+            ),
+            section_title=sec
+        )
         section_text = insert_cites(section_text, bib_keys, prob=0.2)
         doc.append(NoEscape(section_text))
 
-        # 랜덤 그래프
-        if random.random() < graph_prob:
+        # 그래프: 실험/분석 섹션은 무조건, 나머지는 확률
+        if sec in ["실험 및 결과", "연구 방법"] or random.random() < graph_prob:
             graph_path = generate_graph(sec, topic, figure_number=1, language=language, api_key=api_key)
             if graph_path:
                 insert_figure(doc, graph_path, f"{sec} 관련 그래프")
 
-        # 랜덤 이미지
+        # 이미지: 확률적으로
         if random.random() < image_prob:
             image_files = generate_images(api_key, topic, sec, count=1)
             for img_file in image_files:
                 insert_figure(doc, img_file, f"{sec} 관련 이미지")
 
-        # 랜덤 표
+        # 표: 확률적으로
         if random.random() < table_prob:
             table_code = generate_table(sec, topic, language, api_key=api_key)
             if table_code:
