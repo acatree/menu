@@ -5,9 +5,9 @@ import os
 from ebook import generate_latex, openai
 import subprocess
 import youtube
-from openai import OpenAI
-import os, zipfile
+import zipfile
 from io import BytesIO
+import openai
 
 app = Flask(__name__)
 # ===== 기본 데이터 =====
