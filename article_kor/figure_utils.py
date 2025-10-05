@@ -64,7 +64,6 @@ def generate_graph(section_title, topic, figure_number=1, language="ko", api_key
         print(f"[그래프 생성 실패] {section_title}: {e}")
         traceback.print_exc()
         return ""
-
     return fig_path
 # -----------------------------
 # LaTeX figure 삽입
