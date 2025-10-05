@@ -128,9 +128,9 @@ def index7():
 
             # 언어별 논문 생성기 선택
             if language == "ko":
-                from article_kor import generate_paper
+                from article_kor.main import generate_paper
             else:
-                from article_eng import generate_paper
+                from article_eng.main import generate_paper
 
             # 논문 생성
             generated_files = generate_paper(
