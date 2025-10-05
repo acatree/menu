@@ -4,8 +4,7 @@ from pulp import *
 import os
 from ebook import generate_latex, openai
 import subprocess
-import youtube  # youtube.py
-from article import generate_paper
+import youtube
 
 app = Flask(__name__)
 # ===== 기본 데이터 =====
