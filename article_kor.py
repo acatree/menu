@@ -1,27 +1,9 @@
-좋아요. 그럼 아래처럼 코드를 KCI 스타일로 바꾸고, 그래프 + DALL·E 이미지가 실제로 삽입되도록 통합해 보겠습니다.
-
-핵심 변경점:
-
-1. Document(documentclass='article') → Document(documentclass='kci')
-
-
-2. figure 삽입을 통합 함수로 처리 (insert_figure)
-
-
-3. 그래프 코드 실행 시 plt.savefig() 포함 여부 확인
-
-
-4. DALL·E 호출 실패 시 재시도 로직 추가
-
-
-
 import os, io, requests, contextlib
 from pylatex import Document, Command, NoEscape
 import matplotlib.pyplot as plt
 import openai
 
 openai.api_key = None  # Flask 또는 환경변수에서 세팅
-
 # ---------------------------
 # ChatGPT 요청 함수
 # ---------------------------
