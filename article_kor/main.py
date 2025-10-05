@@ -14,7 +14,6 @@ def generate_paper(title, topic, api_key=None):
     # 제목/저자
     doc.preamble.append(Command('title', title))
     doc.preamble.append(Command('author', "강상규"))
-    doc.preamble.append(Command('date', NoEscape(r'\today')))
     doc.append(NoEscape(r'\maketitle'))
 
     # 초록/키워드
