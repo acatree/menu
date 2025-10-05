@@ -87,6 +87,48 @@ def generate_paper(topic, api_key=None):
                 doc.append(NoEscape(f"\\caption{{{sec} 관련 표}}"))
                 doc.append(NoEscape(r"\end{table}"))
 
+            # --- 6.1 데이터 생성 및 분석 ---
+            data_prompt = (
+                f"'{research_topic}' 관련 통계 데이터 예시를 생성하세요. "
+                "pandas DataFrame 형식으로, 5~6개 변수, 20~30개 샘플 포함. "
+                "변수 이름과 의미를 명시하세요."
+            )
+            data_code = openai_utils.ask_question(data_prompt, api_key=api_key)
+
+            import pandas as pd, numpy as np
+            local_env = {"pd": pd, "np": np}
+            df = None
+            try:
+                exec(data_code, local_env)
+                df = local_env.get('df', None)
+            except Exception as e:
+                print(f"[데이터 생성 실패]: {e}")
+                df = None
+
+            # --- 6.2 분석 텍스트 ---
+            analysis_prompt = (
+                f"'{research_topic}' 분석 섹션 작성, 위 데이터(df)를 이용, "
+                f"수학적 모델 + 통계 분석 + 결과 해석 포함, 최소 {min_words}단어"
+            )
+            text_exp = openai_utils.ask_question(analysis_prompt, api_key=api_key)
+            text = text_utils.clean_section_text(text_exp)
+            doc.append(NoEscape(text))
+
+            # --- 6.3 그래프 ---
+            if df is not None:
+                fig = figure_utils.generate_graph_from_df(sec, df, research_topic)
+                if fig:
+                    figure_utils.insert_figure(doc, fig, f"{sec} 관련 그래프")
+
+            # --- 6.4 표 ---
+            if df is not None:
+                table_latex = df.to_latex(index=False)
+                doc.append(NoEscape(r"\begin{table}[h]"))
+                doc.append(NoEscape(r"\centering"))
+                doc.append(NoEscape(r"\resizebox{0.9\textwidth}{!}{" + table_latex + "}"))
+                doc.append(NoEscape(f"\\caption{{{sec} 관련 표}}"))
+                doc.append(NoEscape(r"\end{table}"))
+
         else:
             # 나머지 섹션
             text_exp = openai_utils.ask_question(
