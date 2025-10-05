@@ -126,7 +126,7 @@ def index7():
 
             # 언어별 모듈 분기
             if language == "ko":
-                from article_kor import 논문_생성
+                from article_kor import generate_paper
             else:
                 from article_eng import generate_paper
 
