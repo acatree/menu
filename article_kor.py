@@ -1,182 +1,176 @@
 import os
+from pylatex import Document, Command, NoEscape
+import openai
+import matplotlib.pyplot as plt
+import contextlib
 import io
 import requests
-import contextlib
-import matplotlib.pyplot as plt
-import openai
 from openai import OpenAI
-from pylatex import Document, Command, NoEscape
-
-openai.api_key = None  # Flask 또는 환경 변수에서 설정
-
+openai.api_key = None  # Flask 또는 환경변수에서 세팅
 # ---------------------------
-# ChatGPT 질의 함수
+# ChatGPT 요청 함수
 # ---------------------------
-def 질문_요청(질문, 언어="ko"):
-    시스템_프롬프트 = "당신은 SCI/KCI 수준의 한국어 학술 논문 작성 전문가입니다."
-    응답 = openai.chat.completions.create(
+def ask_question(question, language="ko"):
+    system_prompt = "당신은 SCI/KCI 수준 학술 논문 작성 전문가입니다." if language == "ko" else "You are an expert in academic paper writing."
+    response = openai.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
-            {"role": "system", "content": 시스템_프롬프트},
-            {"role": "user", "content": 질문}
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": question}
         ],
         temperature=0.7,
         max_completion_tokens=3000,
     )
-    return 응답.choices[0].message.content.strip()
-
+    return response.choices[0].message.content.strip()
 
 # ---------------------------
 # 시각 이미지 생성 (DALL·E)
 # ---------------------------
-def 이미지_생성(api_key, 주제, 섹션제목, 개수=1):
-    클라이언트 = OpenAI(api_key=api_key)
-    os.makedirs("이미지", exist_ok=True)
-    생성된_이미지 = []
+def generate_images(api_key, topic, section_title, count=1):
+    client = OpenAI(api_key=api_key)
+    os.makedirs("images", exist_ok=True)
+    image_files = []
 
-    for i in range(개수):
-        프롬프트 = (
-            f"'{주제}' 주제의 '{섹션제목}' 섹션을 시각적으로 표현한 장면. "
-            f"인물 이름이나 브랜드 없이 묘사적, 추상적 스타일. "
-            f"변형 {i+1}"
+    for i in range(count):
+        prompt = (
+            f"'{topic}' 주제의 '{section_title}' 섹션을 시각적으로 표현한 장면. "
+            f"직접적인 인물 이름이나 브랜드 없이 묘사적, 추상적 스타일. "
+            f"variation {i+1}"
         )
-        응답 = 클라이언트.images.generate(
+        response = client.images.generate(
             model="dall-e-3",
-            prompt=프롬프트,
+            prompt=prompt,
             size="1024x1024"
         )
 
-        이미지_URL = 응답.data[0].url if 응답.data and 응답.data[0].url else None
-        if not 이미지_URL:
+        image_url = response.data[0].url if response.data and response.data[0].url else None
+        if not image_url:
             raise ValueError("❌ 이미지 URL을 생성하지 못했습니다.")
-        데이터 = requests.get(이미지_URL).content
+        img_data = requests.get(image_url).content
 
-        파일이름 = f"이미지/{섹션제목.replace(' ', '_')}_이미지{i+1}.png"
-        with open(파일이름, 'wb') as f:
-            f.write(데이터)
-        생성된_이미지.append(파일이름)
+        filename = f"images/{section_title.replace(' ', '_')}_img{i+1}.png"
+        with open(filename, 'wb') as f:
+            f.write(img_data)
+        image_files.append(filename)
 
-    return 생성된_이미지
+    return image_files
 
 
 # ---------------------------
 # 그래프 생성 (Matplotlib)
 # ---------------------------
-def 그래프_생성(섹션제목, 주제, 그림번호=1):
-    os.makedirs("그래프", exist_ok=True)
-    파일경로 = f"그래프/{섹션제목.replace(' ', '_')}_그림{그림번호}.png"
+def generate_graph(section_title, topic, figure_number=1, language="ko"):
+    os.makedirs("graphs", exist_ok=True)
+    fig_path = f"graphs/{section_title.replace(' ','_')}_fig{figure_number}.png"
 
-    질문 = (
-        f"'{주제}' 주제의 '{섹션제목}' 섹션을 설명하는 matplotlib 그래프 코드 생성. "
-        f"그림 번호는 {그림번호}이며, 캡션은 한국어로 작성하세요. "
-        f"파이썬에서 바로 실행 가능한 완전한 코드로 작성."
+    # ChatGPT에게 matplotlib 코드 요청
+    question = (
+        f"'{topic}' 주제 관련 '{section_title}' 섹션용 matplotlib 그래프 코드 생성. "
+        f"그림 번호 {figure_number}, 캡션 {language}. "
+        f"python 실행 가능한 완전한 코드로."
     )
-    코드 = 질문_요청(질문, "ko")
+    code = ask_question(question, language)
 
+    # 안전 실행
     try:
         f = io.StringIO()
         with contextlib.redirect_stdout(f):
-            exec(코드, {"plt": plt})
-        plt.savefig(파일경로)
+            exec(code, {"plt": plt})
+        plt.savefig(fig_path)
         plt.close()
     except Exception as e:
-        print(f"[⚠ 그래프 생성 실패] {섹션제목}: {e}")
+        print(f"[그래프 생성 실패] {section_title}: {e}")
         return ""
 
-    return 파일경로
+    return fig_path
 
 
 # ---------------------------
-# 표 생성 (LaTeX)
+# 표 생성
 # ---------------------------
-def 표_생성(섹션제목, 주제, 표번호=1):
-    질문 = f"'{주제}' 주제의 '{섹션제목}' 섹션과 관련된 표 LaTeX tabular 코드 생성. 표 번호는 {표번호}, 캡션은 한국어로 작성."
-    표코드 = 질문_요청(질문, "ko")
-    return 표코드
+def generate_table(section_title, topic, table_number=1, language="ko"):
+    question = f"'{topic}' 주제 관련 표 LaTeX tabular 코드 생성. 표 번호 {table_number}, 캡션 {language}."
+    table_code = ask_question(question, language)
+    return table_code
 
 
 # ---------------------------
-# 참고문헌 (BibTeX)
+# BibTeX 생성
 # ---------------------------
-def 참고문헌_생성(주제, 논문수=10):
-    항목들 = []
-    for i in range(논문수):
-        질문 = f"'{주제}'와 관련된 최근 한국어 SCI/KCI 논문 1개의 BibTeX 항목을 생성하세요."
-        항목 = 질문_요청(질문, "ko")
-        항목들.append(항목)
-    return 항목들
+def generate_bibtex(topic, num_refs=10, language="ko"):
+    entries = []
+    for i in range(num_refs):
+        question = f"'{topic}' 관련 최신 SCI/KCI 논문 1개 BibTeX 생성"
+        entry = ask_question(question, language)
+        entries.append(entry)
+    return entries
 
 
 # ---------------------------
 # 논문 전체 생성
 # ---------------------------
-def 논문_생성(제목, 주제, api_key=None, 참고문헌수=10):
-    섹션목록 = ["서론", "관련 연구", "연구 방법", "실험 및 결과", "논의", "결론"]
+def generate_paper(title, topic, api_key=None, language="ko", references=10):
+    sections = ["서론", "관련 연구", "연구 방법", "실험 및 결과", "논의", "결론"]
 
-    문서 = Document(documentclass='article', document_options=['12pt'])
-    문서.packages.append(Command('usepackage', 'kotex'))
-    문서.packages.append(Command('usepackage', 'setspace'))
-    문서.packages.append(Command('usepackage', 'geometry', options='margin=1in'))
-    문서.packages.append(Command('usepackage', 'graphicx'))
+    # LaTeX 문서 설정
+    doc = Document(documentclass='article', document_options=['12pt'])
+    doc.packages.append(Command('usepackage', 'kotex'))
+    doc.packages.append(Command('usepackage', 'setspace'))
+    doc.packages.append(Command('usepackage', 'geometry', options='margin=1in'))
+    doc.packages.append(Command('usepackage', 'graphicx'))
 
-    문서.preamble.append(Command('title', 제목))
-    문서.preamble.append(Command('author', "강상규"))
-    문서.preamble.append(Command('date', NoEscape(r'\today')))
-    문서.append(NoEscape(r'\maketitle'))
-    문서.append(NoEscape(r'\tableofcontents'))
-    문서.append(Command('newpage'))
+    doc.preamble.append(Command('title', title))
+    doc.preamble.append(Command('author', "강상규"))
+    doc.preamble.append(Command('date', NoEscape(r'\today')))
+    doc.append(NoEscape(r'\maketitle'))
+    doc.append(NoEscape(r'\tableofcontents'))
+    doc.append(Command('newpage'))
 
-    그림번호 = 1
-    표번호 = 1
-    생성된_파일목록 = []
+    figure_counter = 1
+    table_counter = 1
+    generated_files = []
 
-    for 섹션 in 섹션목록:
-        문서.append(NoEscape(f"\\section{{{섹션}}}"))
-        본문 = 질문_요청(f"'{주제}' 주제의 '{섹션}' 섹션을 300단어 이상, 전문적인 학술 문체로 작성하세요.", "ko")
-        문서.append(NoEscape(본문))
+    for sec in sections:
+        doc.append(NoEscape(f"\\section{{{sec}}}"))
+        section_text = ask_question(f"'{topic}' 주제에 대해 '{sec}' 섹션을 작성하세요. 최소 300단어.", language)
+        doc.append(NoEscape(section_text))
 
-        # --------------------------
-        # 주석으로 그림 생성 순서 명시
-        # --------------------------
-        문서.append(NoEscape(f"% 그림 {그림번호}: 그래프 생성 코드"))
-        그래프파일 = 그래프_생성(섹션, 주제, 그림번호)
-        if 그래프파일:
-            생성된_파일목록.append(그래프파일)
-        그림번호 += 1
+        # --- 주석으로 figure 삽입 순서 관리 ---
+        doc.append(NoEscape(f"% Figure {figure_counter}: 그래프 생성 코드"))
+        graph_path = generate_graph(sec, topic, figure_counter, language)
+        if graph_path:
+            generated_files.append(graph_path)
+        figure_counter += 1
 
-        문서.append(NoEscape(f"% 그림 {그림번호}: DALL·E 시각 이미지"))
-        이미지파일 = 이미지_생성(api_key, 주제, 섹션, 개수=1)
-        생성된_파일목록.extend(이미지파일)
-        그림번호 += 1
-        # --------------------------
+        doc.append(NoEscape(f"% Figure {figure_counter}: 시각 이미지 (DALL·E)"))
+        image_files = generate_images(api_key, topic, sec, count=1)
+        generated_files.extend(image_files)
+        figure_counter += 1
+        # --------------------------------------
 
-        # 표 생성
-        표코드 = 표_생성(섹션, 주제, 표번호)
-        if 표코드:
-            문서.append(NoEscape(표코드))
-            표번호 += 1
+        # 표 삽입
+        table_code = generate_table(sec, topic, table_counter, language)
+        if table_code:
+            doc.append(NoEscape(table_code))
+            table_counter += 1
 
-        문서.append(Command('newpage'))
+        doc.append(Command('newpage'))
 
-    # ---------------------------
-    # 참고문헌 삽입
-    # ---------------------------
-    참고목록 = 참고문헌_생성(주제, 참고문헌수)
-    bib파일 = f"{제목}_참고문헌.bib"
-    with open(bib파일, 'w', encoding='utf-8') as f:
-        f.write("\n\n".join(참고목록))
-    생성된_파일목록.append(bib파일)
+    # 참고문헌
+    bib_entries = generate_bibtex(topic, references, language)
+    bib_file = f"{title}_references.bib"
+    with open(bib_file, 'w', encoding='utf-8') as f:
+        f.write("\n\n".join(bib_entries))
+    generated_files.append(bib_file)
 
-    문서.append(NoEscape(r"\bibliographystyle{apalike}"))
-    문서.append(NoEscape(rf"\bibliography{{{제목}_참고문헌}}"))
+    doc.append(NoEscape(r"\bibliographystyle{apalike}"))
+    doc.append(NoEscape(rf"\bibliography{{{title}_references}}"))
 
-    # ---------------------------
     # LaTeX 파일 저장
-    # ---------------------------
     os.makedirs("tex", exist_ok=True)
-    tex파일 = os.path.join("tex", f"{제목}.tex")
-    with open(tex파일, 'w', encoding='utf-8') as f:
-        f.write(문서.dumps())
-    생성된_파일목록.append(tex파일)
+    tex_file = os.path.join("tex", f"{title}.tex")
+    with open(tex_file, 'w', encoding='utf-8') as f:
+        f.write(doc.dumps())
+    generated_files.append(tex_file)
 
-    return 생성된_파일목록
+    return generated_files
