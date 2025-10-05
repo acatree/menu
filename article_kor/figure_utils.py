@@ -16,7 +16,6 @@ def safe_filename(section_title, suffix):
     }
     name = mapping.get(section_title, ''.join(filter(str.isalnum, section_title)))
     return f"{name}_{suffix}.png"
-
 # -----------------------------
 # 이미지 생성
 # -----------------------------
