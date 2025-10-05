@@ -1,4 +1,4 @@
-  import os, io, requests, contextlib, re, random
+import os, io, requests, contextlib, re, random
 from pylatex import Document, Command, NoEscape
 import matplotlib.pyplot as plt
 import openai
