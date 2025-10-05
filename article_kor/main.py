@@ -7,7 +7,6 @@ from . import text_utils
 from . import figure_utils
 from . import bib_utils
 
-
 def generate_paper(topic, api_key=None):
     """
     scrartcl 스타일 기반 전문 논문 LaTeX 생성
