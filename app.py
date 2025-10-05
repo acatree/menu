@@ -112,7 +112,6 @@ def generate():
 def index6():
     return render_template("index6.html")
 
-
 @app.route("/index7", methods=["GET", "POST"])
 def index7():
     error = None
@@ -124,26 +123,38 @@ def index7():
             title = request.form.get("title")
             topic = request.form.get("topic")
             references = int(request.form.get("references", 10))
-            language = request.form.get("language", "ko")  # optional
+            language = request.form.get("language", "ko")  # 기본값: 한국어
 
-            generated_files = generate_paper(title, topic, language=language, references=references)
+            # 언어별 모듈 분기
+            if language == "ko":
+                from article_kor import generate_paper
+            else:
+                from article_eng import generate_paper
 
-            # ZIP all generated files
+            # 논문 생성
+            generated_files = generate_paper(
+                title, topic, language=language, references=references
+            )
+
+            # ZIP 파일 생성
             import zipfile
             from io import BytesIO
             memory_file = BytesIO()
-            with zipfile.ZipFile(memory_file, 'w') as zf:
+            with zipfile.ZipFile(memory_file, "w") as zf:
                 for file_path in generated_files:
                     zf.write(file_path, os.path.basename(file_path))
             memory_file.seek(0)
 
-            return send_file(memory_file, attachment_filename=f"{title}.zip", as_attachment=True)
+            return send_file(
+                memory_file,
+                download_name=f"{title}.zip",  # Flask 2.3 이상은 attachment_filename 대신 download_name
+                as_attachment=True,
+            )
 
         except Exception as e:
             error = str(e)
 
     return render_template("index7.html", error=error)
-
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5001, debug=True)
