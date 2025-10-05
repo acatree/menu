@@ -1,9 +1,9 @@
 from pylatex import Document, Command, NoEscape
-import zipfile, os, re
+import os, re
 import openai_utils, text_utils, figure_utils, bib_utils
 
 def generate_paper(title, topic, api_key=None):
-    # 단 1개, LaTeX 설정
+    # LaTeX 설정
     doc = Document(documentclass='article', document_options=['12pt'])
     doc.packages.append(Command('usepackage','kotex'))
     doc.packages.append(Command('usepackage','geometry', options='a4paper,top=2.5cm,bottom=2.5cm,left=3cm,right=3cm'))
@@ -20,7 +20,7 @@ def generate_paper(title, topic, api_key=None):
     doc.append(NoEscape(text_utils.clean_section_text(
         openai_utils.ask_question(f"'{topic}' 초록 작성, 150~200단어", api_key=api_key)
     )))
-    doc.append(NoEscape(r'\section*{주제}'))
+    doc.append(NoEscape(r'\section*{키워드}'))
     doc.append(NoEscape(text_utils.extract_keywords(
         openai_utils.ask_question(f"'{topic}' 키워드 8개 생성", api_key=api_key)
     )))
@@ -37,30 +37,31 @@ def generate_paper(title, topic, api_key=None):
     for sec in sections:
         doc.append(NoEscape(f"\\section{{{sec}}}"))
 
-        # 분석 단일 섹션 생성
         if sec == "분석":
+            # 분석 섹션
             text_exp = openai_utils.ask_question(f"'{topic}' 분석 섹션 작성, 실험 및 결과 + 논의 포함, 최소 400단어", api_key=api_key)
             text = text_utils.clean_section_text(text_exp, remove_title=True, section_title="")
+            doc.append(NoEscape(text))
+
+            # 분석 섹션에 무조건 그래프와 표 삽입
+            fig = figure_utils.generate_graph(sec, topic, api_key=api_key)
+            if fig:
+                figure_utils.insert_figure(doc, fig, f"{sec} 관련 그래프")
+
+            table = figure_utils.generate_table(sec, topic, api_key=api_key)
+            if table:
+                doc.append(NoEscape(r"\begin{table}[h]"))
+                doc.append(NoEscape(r"\centering"))
+                doc.append(NoEscape(r"\resizebox{0.9\textwidth}{!}{" + table + "}"))
+                doc.append(NoEscape(f"\\caption{{{sec} 관련 표}}"))
+                doc.append(NoEscape(r"\end{table}"))
         else:
+            # 나머지 섹션
             text_exp = openai_utils.ask_question(f"'{topic}' '{sec}' 섹션 작성, 최소 300단어", api_key=api_key)
             text = text_utils.clean_section_text(text_exp, remove_title=True, section_title=sec)
+            doc.append(NoEscape(text))
 
-        text = text_utils.insert_cites(text, bib_keys, prob=0.2)
-        doc.append(NoEscape(text))
-
-        # 그래프, 표, 이미지
-        fig = figure_utils.generate_graph(sec, topic, api_key=api_key)
-        if fig:
-            figure_utils.insert_figure(doc, fig, f"{sec} 관련 그래프")
-
-        table = figure_utils.generate_table(sec, topic, api_key=api_key)
-        if table:
-            doc.append(NoEscape(r"\begin{table}[h]"))
-            doc.append(NoEscape(r"\centering"))
-            doc.append(NoEscape(r"\resizebox{0.9\textwidth}{!}{" + table + "}"))
-            doc.append(NoEscape(f"\\caption{{{sec} 관련 표}}"))
-            doc.append(NoEscape(r"\end{table}"))
-
+        # 모든 섹션 이미지 삽입
         imgs = figure_utils.generate_images(api_key, topic, sec)
         for img in imgs:
             figure_utils.insert_figure(doc, img, f"{sec} 관련 이미지")
