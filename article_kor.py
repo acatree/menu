@@ -6,11 +6,14 @@ import contextlib
 import io
 import requests
 from openai import OpenAI
+
 openai.api_key = None  # Flask 또는 환경변수에서 세팅
 # ---------------------------
 # ChatGPT 요청 함수
 # ---------------------------
-def ask_question(question, language="ko"):
+def ask_question(question, language="ko", api_key=None):
+    if api_key:
+        openai.api_key = api_key  # Flask에서 받은 API 키 반영
     system_prompt = "당신은 SCI/KCI 수준 학술 논문 작성 전문가입니다." if language == "ko" else "You are an expert in academic paper writing."
     response = openai.chat.completions.create(
         model="gpt-4o-mini",
@@ -27,7 +30,7 @@ def ask_question(question, language="ko"):
 # 시각 이미지 생성 (DALL·E)
 # ---------------------------
 def generate_images(api_key, topic, section_title, count=1):
-    client = OpenAI(api_key=api_key)
+    openai.api_key = api_key
     os.makedirs("images", exist_ok=True)
     image_files = []
 
@@ -37,7 +40,7 @@ def generate_images(api_key, topic, section_title, count=1):
             f"직접적인 인물 이름이나 브랜드 없이 묘사적, 추상적 스타일. "
             f"variation {i+1}"
         )
-        response = client.images.generate(
+        response = openai.images.generate(
             model="dall-e-3",
             prompt=prompt,
             size="1024x1024"
@@ -52,26 +55,22 @@ def generate_images(api_key, topic, section_title, count=1):
         with open(filename, 'wb') as f:
             f.write(img_data)
         image_files.append(filename)
-
     return image_files
-
-
 # ---------------------------
 # 그래프 생성 (Matplotlib)
 # ---------------------------
-def generate_graph(section_title, topic, figure_number=1, language="ko"):
+def generate_graph(section_title, topic, figure_number=1, language="ko", api_key=None):
+    openai.api_key = api_key
     os.makedirs("graphs", exist_ok=True)
     fig_path = f"graphs/{section_title.replace(' ','_')}_fig{figure_number}.png"
 
-    # ChatGPT에게 matplotlib 코드 요청
     question = (
         f"'{topic}' 주제 관련 '{section_title}' 섹션용 matplotlib 그래프 코드 생성. "
         f"그림 번호 {figure_number}, 캡션 {language}. "
         f"python 실행 가능한 완전한 코드로."
     )
-    code = ask_question(question, language)
+    code = ask_question(question, language, api_key=api_key)
 
-    # 안전 실행
     try:
         f = io.StringIO()
         with contextlib.redirect_stdout(f):
@@ -83,28 +82,22 @@ def generate_graph(section_title, topic, figure_number=1, language="ko"):
         return ""
 
     return fig_path
-
-
 # ---------------------------
 # 표 생성
 # ---------------------------
-def generate_table(section_title, topic, table_number=1, language="ko"):
-    question = f"'{topic}' 주제 관련 표 LaTeX tabular 코드 생성. 표 번호 {table_number}, 캡션 {language}."
-    table_code = ask_question(question, language)
+def generate_table(section_title, topic, table_number=1, language="ko", api_key=None):
+    table_code = ask_question(f"'{topic}' 주제 관련 표 LaTeX tabular 코드 생성. 표 번호 {table_number}, 캡션 {language}.", language, api_key=api_key)
     return table_code
-
 
 # ---------------------------
 # BibTeX 생성
 # ---------------------------
-def generate_bibtex(topic, num_refs=10, language="ko"):
+def generate_bibtex(topic, num_refs=10, language="ko", api_key=None):
     entries = []
     for i in range(num_refs):
-        question = f"'{topic}' 관련 최신 SCI/KCI 논문 1개 BibTeX 생성"
-        entry = ask_question(question, language)
+        entry = ask_question(f"'{topic}' 관련 최신 SCI/KCI 논문 1개 BibTeX 생성", language, api_key=api_key)
         entries.append(entry)
     return entries
-
 
 # ---------------------------
 # 논문 전체 생성
@@ -112,7 +105,6 @@ def generate_bibtex(topic, num_refs=10, language="ko"):
 def generate_paper(title, topic, api_key=None, language="ko", references=10):
     sections = ["서론", "관련 연구", "연구 방법", "실험 및 결과", "논의", "결론"]
 
-    # LaTeX 문서 설정
     doc = Document(documentclass='article', document_options=['12pt'])
     doc.packages.append(Command('usepackage', 'kotex'))
     doc.packages.append(Command('usepackage', 'setspace'))
@@ -132,12 +124,11 @@ def generate_paper(title, topic, api_key=None, language="ko", references=10):
 
     for sec in sections:
         doc.append(NoEscape(f"\\section{{{sec}}}"))
-        section_text = ask_question(f"'{topic}' 주제에 대해 '{sec}' 섹션을 작성하세요. 최소 300단어.", language)
+        section_text = ask_question(f"'{topic}' 주제에 대해 '{sec}' 섹션을 작성하세요. 최소 300단어.", language, api_key=api_key)
         doc.append(NoEscape(section_text))
 
-        # --- 주석으로 figure 삽입 순서 관리 ---
         doc.append(NoEscape(f"% Figure {figure_counter}: 그래프 생성 코드"))
-        graph_path = generate_graph(sec, topic, figure_counter, language)
+        graph_path = generate_graph(sec, topic, figure_counter, language, api_key=api_key)
         if graph_path:
             generated_files.append(graph_path)
         figure_counter += 1
@@ -146,18 +137,15 @@ def generate_paper(title, topic, api_key=None, language="ko", references=10):
         image_files = generate_images(api_key, topic, sec, count=1)
         generated_files.extend(image_files)
         figure_counter += 1
-        # --------------------------------------
 
-        # 표 삽입
-        table_code = generate_table(sec, topic, table_counter, language)
+        table_code = generate_table(sec, topic, table_counter, language, api_key=api_key)
         if table_code:
             doc.append(NoEscape(table_code))
             table_counter += 1
 
         doc.append(Command('newpage'))
 
-    # 참고문헌
-    bib_entries = generate_bibtex(topic, references, language)
+    bib_entries = generate_bibtex(topic, references, language, api_key=api_key)
     bib_file = f"{title}_references.bib"
     with open(bib_file, 'w', encoding='utf-8') as f:
         f.write("\n\n".join(bib_entries))
@@ -166,7 +154,6 @@ def generate_paper(title, topic, api_key=None, language="ko", references=10):
     doc.append(NoEscape(r"\bibliographystyle{apalike}"))
     doc.append(NoEscape(rf"\bibliography{{{title}_references}}"))
 
-    # LaTeX 파일 저장
     os.makedirs("tex", exist_ok=True)
     tex_file = os.path.join("tex", f"{title}.tex")
     with open(tex_file, 'w', encoding='utf-8') as f:
