@@ -5,10 +5,13 @@ import openai
 
 openai.api_key = None  # Flask 또는 환경변수에서 세팅
 
+# ---------------------------
+# ChatGPT 요청 함수
+# ---------------------------
 def ask_question(question, language="ko", api_key=None):
     if api_key:
         openai.api_key = api_key
-    system_prompt = "당신은 SCI/KCI 수준 학술 논문 작성 전문가입니다." if language == "ko" else "You are an expert in academic paper writing."
+    system_prompt = "당신은 SCI/KCI 수준 학술 논문 작성 전문가입니다." if language=="ko" else "You are an expert in academic paper writing."
     response = openai.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
@@ -33,7 +36,7 @@ def generate_images(api_key, topic, section_title, count=1):
             f"'{topic}' 주제의 '{section_title}' 섹션을 시각적으로 표현한 장면. "
             "직접적인 인물 이름이나 브랜드 없이 묘사적, 추상적 스타일."
         )
-        # 이미지 생성 시 재시도 루프
+        # 이미지 생성 재시도
         for attempt in range(3):
             response = openai.images.generate(
                 model="dall-e-3",
@@ -69,7 +72,6 @@ def generate_graph(section_title, topic, figure_number=1, language="ko", api_key
     code = ask_question(question, language, api_key=api_key)
 
     try:
-        # exec에서 plt 객체 전달
         f = io.StringIO()
         with contextlib.redirect_stdout(f):
             exec(code, {"plt": plt})
@@ -113,24 +115,27 @@ def generate_bibtex(topic, num_refs=10, language="ko", api_key=None):
     return entries
 
 # ---------------------------
-# KCI 스타일 논문 전체 생성
+# KCI 스타일 흉내 논문 생성
 # ---------------------------
 def generate_paper(title, topic, api_key=None, language="ko", references=10):
     sections = ["서론", "관련 연구", "연구 방법", "실험 및 결과", "논의", "결론"]
 
-    # KCI.cls 적용
-    doc = Document(documentclass='kci', document_options=['12pt'])
+    # article 기반, KCI 스타일 흉내
+    doc = Document(documentclass='article', document_options=['12pt'])
     doc.packages.append(Command('usepackage', 'kotex'))
+    doc.packages.append(Command('usepackage', 'geometry', options='a4paper, top=2.5cm, bottom=2.5cm, left=3cm, right=3cm'))
+    doc.packages.append(Command('usepackage', 'setspace'))
     doc.packages.append(Command('usepackage', 'graphicx'))
     doc.packages.append(Command('usepackage', 'caption'))
-    doc.packages.append(Command('usepackage', 'setspace'))
+    doc.packages.append(Command('usepackage', 'booktabs'))
 
     # 제목/저자
     doc.preamble.append(Command('title', title))
     doc.preamble.append(Command('author', "강상규"))
+    doc.preamble.append(Command('date', NoEscape(r'\today')))
     doc.append(NoEscape(r'\maketitle'))
 
-    # 초록(Abstract)
+    # 초록
     doc.append(NoEscape(r'\begin{abstract}'))
     abstract_text = ask_question(f"'{topic}' 주제 초록(Abstract) 작성, 150~200단어", language, api_key=api_key)
     doc.append(NoEscape(abstract_text))
@@ -150,19 +155,19 @@ def generate_paper(title, topic, api_key=None, language="ko", references=10):
         section_text = ask_question(f"'{topic}' 주제에 대해 '{sec}' 섹션 작성, 최소 300단어", language, api_key=api_key)
         doc.append(NoEscape(section_text))
 
-        # 그래프 삽입
+        # 그래프
         graph_path = generate_graph(sec, topic, figure_counter, language, api_key=api_key)
         if graph_path:
             figure_counter = insert_figure(doc, graph_path, figure_counter, f"{sec} 관련 그래프")
             generated_files.append(graph_path)
 
-        # DALL·E 이미지 삽입
+        # 이미지
         image_files = generate_images(api_key, topic, sec, count=1)
         for img_file in image_files:
             figure_counter = insert_figure(doc, img_file, figure_counter, f"{sec} 관련 이미지")
             generated_files.append(img_file)
 
-        # 표 삽입
+        # 표
         table_code = generate_table(sec, topic, table_counter, language, api_key=api_key)
         if table_code:
             doc.append(NoEscape(r"\begin{table}[h]"))
@@ -181,7 +186,7 @@ def generate_paper(title, topic, api_key=None, language="ko", references=10):
         f.write("\n\n".join(bib_entries))
     generated_files.append(bib_file)
 
-    doc.append(NoEscape(r"\bibliographystyle{kci}"))
+    doc.append(NoEscape(r"\bibliographystyle{apalike}"))
     doc.append(NoEscape(rf"\bibliography{{{title}_references}}"))
 
     # LaTeX 저장
