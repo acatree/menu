@@ -8,6 +8,11 @@ from . import figure_utils
 from . import bib_utils
 
 def generate_paper(topic, api_key=None):
+    """
+    scrartcl 전문 논문 스타일 기반 LaTeX 생성
+    데이터, 그래프, 표 포함
+    """
+
     # 1. 창의적 연구 제목/주제
     creative_title = openai_utils.ask_question(
         f"'{topic}'와 관련되면서 창의적이고 아직 시도되지 않은 연구 논문 제목을 "
@@ -22,22 +27,29 @@ def generate_paper(topic, api_key=None):
 
     # 2. LaTeX scrartcl 설정
     doc = Document(documentclass='scrartcl', document_options=['11pt', 'a4paper'])
+
     # 패키지
     doc.packages.append(Package('geometry', options=['margin=1in']))
     doc.packages.append(Package('graphicx'))
     doc.packages.append(Package('amsmath'))
     doc.packages.append(Package('amssymb'))
     doc.packages.append(Package('siunitx'))
-    doc.packages.append(Package('hyperref'))
-    doc.packages.append(Package('caption'))
+    doc.packages.append(Package('hyperref', options='colorlinks=true, linkcolor=blue, citecolor=blue, urlcolor=blue'))
+    doc.packages.append(Package('caption', options='font=small,labelfont=bf'))
     doc.packages.append(Package('booktabs'))
     doc.packages.append(Package('setspace'))
     doc.packages.append(Package('titlesec'))
+    doc.packages.append(Package('float'))
     doc.packages.append(Package('kotex'))
+
+    # Section/Subsection 스타일
+    doc.append(NoEscape(r'\titleformat{\section}{\Large\bfseries}{\thesection}{1em}{}'))
+    doc.append(NoEscape(r'\titleformat{\subsection}{\large\bfseries}{\thesubsection}{0.75em}{}'))
 
     # 줄간격
     doc.append(NoEscape(r'\onehalfspacing'))
-    # 제목 스타일
+
+    # 제목/저자/날짜
     doc.preamble.append(NoEscape(r'\title{\Large\bfseries ' + creative_title + '}'))
     doc.preamble.append(NoEscape(r'\author{강상규}'))
     doc.preamble.append(NoEscape(r'\date{}'))  # 날짜 공란
@@ -118,14 +130,14 @@ def generate_paper(topic, api_key=None):
             try:
                 fig = figure_utils.generate_graph_from_df(sec, df, creative_title)
                 if fig:
-                    figure_utils.insert_figure(doc, fig, f"{sec} 관련 그래프")
+                    figure_utils.insert_figure(doc, fig, f"{sec} 관련 그래프", placement='H')
             except Exception as e:
                 print(f"[그래프 생성 실패: {e}]")
 
             # 표
             try:
                 table_latex = df.to_latex(index=False)
-                doc.append(NoEscape(r"\begin{table}[h]"))
+                doc.append(NoEscape(r"\begin{table}[H]"))
                 doc.append(NoEscape(r"\centering"))
                 doc.append(NoEscape(r"\resizebox{0.9\textwidth}{!}{" + table_latex + "}"))
                 doc.append(NoEscape(f"\\caption{{{sec} 관련 표}}"))
