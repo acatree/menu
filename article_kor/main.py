@@ -8,11 +8,6 @@ from . import figure_utils
 from . import bib_utils
 
 def generate_paper(topic, api_key=None):
-    """
-    scrartcl 스타일 기반 전문 논문 LaTeX 생성
-    데이터, 그래프, 표 포함
-    """
-
     # 1. 창의적 연구 제목/주제
     creative_title = openai_utils.ask_question(
         f"'{topic}'와 관련되면서 창의적이고 아직 시도되지 않은 연구 논문 제목을 "
