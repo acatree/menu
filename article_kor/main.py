@@ -161,4 +161,4 @@ def generate_paper(topic, api_key=None):
                 asset_files.append(os.path.join(folder, file))
 
     # 10. 반환
-    return tex_file, "references.bib", asset_files, creative_title, research_topic
+    return tex_file, "references.bib", asset_files
