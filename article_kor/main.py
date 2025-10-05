@@ -75,14 +75,12 @@ def generate_paper(title, topic, api_key=None):
     tex_file = f"{title}.tex"
     doc.generate_tex(tex_file.replace(".tex",""))
 
-    # 최종 ZIP 생성 (tex, bib, images, graphs 함께)
-    zip_file = f"{title}_files.zip"
-    with zipfile.ZipFile(zip_file,'w',zipfile.ZIP_DEFLATED) as zf:
-        zf.write(tex_file)
-        zf.write("references.bib")
-        for folder in ["images","graphs"]:
-            if os.path.exists(folder):
-                for file in os.listdir(folder):
-                    zf.write(os.path.join(folder,file), arcname=file)  # 폴더 구조 없이 포함
+    # 이미지와 그래프 파일 수집
+    asset_files = []
+    for folder in ["images", "graphs"]:
+        if os.path.exists(folder):
+            for file in os.listdir(folder):
+                asset_files.append(os.path.join(folder, file))
 
-    return tex_file, "references.bib", zip_file
+    # 반환: tex, bib, 이미지/그래프 파일 리스트
+    return tex_file, "references.bib", asset_files
