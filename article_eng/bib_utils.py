@@ -2,10 +2,6 @@ import re
 from openai_utils import ask_question
 
 def generate_bibtex(topic, num_refs=10, language="ko", api_key=None):
-    """
-    '{topic}' 관련 SCI/KCI 논문 BibTeX를 num_refs개 생성
-    citation key를 숫자순(ref1, ref2, ...)으로 지정
-    """
     entries = []
     for i in range(1, num_refs + 1):
         raw_entry = ask_question(
