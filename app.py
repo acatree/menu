@@ -113,17 +113,13 @@ def generate():
 @app.route("/index6", methods=["GET", "POST"])
 def index6():
     return render_template("index6.html")
-
 @app.route("/index7", methods=["GET", "POST"])
 def index7():
     error = None
     if request.method == "POST":
         try:
             apikey = request.form.get("apikey")
-        
-            title = request.form.get("title")
             topic = request.form.get("topic")
-            references = int(request.form.get("references", 10))
             language = request.form.get("language", "ko")
 
             # 언어별 논문 생성기 선택
@@ -133,20 +129,21 @@ def index7():
                 from article_eng.main import generate_paper
 
             # 논문 생성
-            generated_files = generate_paper(
-                title, topic, api_key=apikey, language=language, references=references
+            tex_file, bib_file, asset_files, creative_title, research_topic = generate_paper(
+                topic, api_key=apikey
             )
 
             # ZIP 파일로 묶기
+            all_files = [tex_file, bib_file] + asset_files
             memory_file = BytesIO()
             with zipfile.ZipFile(memory_file, "w") as zf:
-                for file_path in generated_files:
+                for file_path in all_files:
                     zf.write(file_path, os.path.basename(file_path))
             memory_file.seek(0)
 
             return send_file(
                 memory_file,
-                download_name=f"{title}.zip",
+                download_name=f"{creative_title}.zip",
                 as_attachment=True,
             )
 
