@@ -1,4 +1,4 @@
-import os, io, requests, contextlib, re, random
+import os, io, requests, contextlib, re, random, zipfile
 from pylatex import Document, Command, NoEscape
 import matplotlib.pyplot as plt
 import openai
@@ -28,22 +28,23 @@ def ask_question(question, language="ko", api_key=None):
 # ---------------------------
 def clean_section_text(text, section_title=None):
     lines = text.splitlines()
-    # 첫 줄이 섹션 제목과 같으면 제거
     if lines and section_title and section_title.strip() in lines[0]:
         lines = lines[1:]
-    # 공백 줄 제거
     lines = [line for line in lines if line.strip() != '']
     text = '\n'.join(lines)
-    text = re.sub(r'^#+\s*', '', text, flags=re.MULTILINE)  # #, ##, ### 제거
-    text = text.replace('**', '')  # 강조 제거
+    text = re.sub(r'^#+\s*', '', text, flags=re.MULTILINE)
+    text = text.replace('**', '')
     return text.strip()
 
 # ---------------------------
 # 키워드 정리
 # ---------------------------
 def extract_keywords(text):
-    keywords = re.findall(r'\b[\w\-]+\b', text)
-    return ', '.join(keywords[:5])
+    words = re.findall(r'\b[\w\-]+\b', text)
+    # 불필요 단어 제거
+    stopwords = ['주제', '대한', '관련', '등', '키워드', '는', '의']
+    keywords = [w for w in words if w not in stopwords]
+    return ', '.join(keywords[:6])  # 최소 6개
 
 # ---------------------------
 # DALL·E 이미지 생성
@@ -51,13 +52,11 @@ def extract_keywords(text):
 def generate_images(api_key, topic, section_title, count=1):
     openai.api_key = api_key
     image_files = []
-
     for i in range(count):
         prompt = (
             f"'{topic}' 주제의 '{section_title}' 섹션에 적합한 학술용 시각 자료 생성. "
-            "논문에 들어갈 수 있는 형태의 데이터 시각화, 그래프, 구조 다이어그램, 실험 결과 시각화 등. "
-            "직접적인 인물 이름이나 브랜드는 제외. "
-            "깔끔하고 전문적인 스타일, 발표/논문용 그림 느낌. 흑백그림, 스케치 등"
+            "논문용 데이터 시각화, 그래프, 구조 다이어그램, 실험 결과 시각화 등. "
+            "직접 인물/브랜드 제외, 전문적 흑백 스타일"
         )
         for attempt in range(3):
             response = openai.images.generate(
@@ -86,12 +85,11 @@ def generate_graph(section_title, topic, figure_number=1, language="ko", api_key
     fig_path = f"{section_title.replace(' ','_')}_fig{figure_number}.png"
 
     question = (
-        f"'{topic}' 주제 관련 '{section_title}' 섹션용 matplotlib 그래프 코드 생성. "
+        f"'{topic}' 주제 '{section_title}' 섹션용 matplotlib 그래프 코드 생성. "
         f"그림 번호 {figure_number}, 캡션 {language}. "
-        "python 실행 가능한 완전한 코드로 출력, plt.savefig('{fig_path}') 포함"
+        "python 실행 가능, plt.savefig('{fig_path}') 포함"
     )
     code = ask_question(question, language, api_key=api_key)
-
     try:
         f = io.StringIO()
         with contextlib.redirect_stdout(f):
@@ -114,31 +112,28 @@ def insert_figure(doc, file_name, caption_text):
     doc.append(Command('newpage'))
 
 # ---------------------------
-# LaTeX 표 생성
+# LaTeX 표 생성 (크기 조정 포함)
 # ---------------------------
 def generate_table(section_title, topic, language="ko", api_key=None):
-    prompt = (
-        f"'{topic}' 주제의 '{section_title}' 섹션 관련 LaTeX tabular 표 생성. "
-        "오직 tabular 환경만 출력, 코드 블록(```) 제거"
-    )
+    prompt = f"'{topic}' 주제 '{section_title}' 관련 LaTeX tabular 표 생성, 코드 블록 제거"
     table_code = ask_question(prompt, language, api_key=api_key)
-    table_code = table_code.replace("```latex", "").replace("```", "")
-    return table_code
+    table_code = table_code.replace("```latex","").replace("```","")
+    return f"\\resizebox{{\\textwidth}}{{!}}{{\n{table_code}\n}}"
 
 # ---------------------------
-# BibTeX 생성 및 정제
+# BibTeX 생성
 # ---------------------------
 def generate_bibtex(topic, num_refs=10, language="ko", api_key=None):
     entries = []
     for i in range(num_refs):
-        raw_entry = ask_question(f"'{topic}' 관련 최신 SCI/KCI 논문 1개 BibTeX 생성", language, api_key=api_key)
+        raw_entry = ask_question(f"'{topic}' 최신 SCI/KCI 논문 1개 BibTeX 생성", language, api_key=api_key)
         match = re.search(r'(@\w+\{[^}]+\})', raw_entry, flags=re.DOTALL)
         if match:
             entries.append(match.group(1))
     return entries
 
 # ---------------------------
-# 본문에 랜덤 cite 삽입
+# 랜덤 cite 삽입
 # ---------------------------
 def insert_cites(text, bib_keys, prob=0.2):
     sentences = re.split(r'(?<=[.!?])\s+', text)
@@ -149,80 +144,79 @@ def insert_cites(text, bib_keys, prob=0.2):
     return ' '.join(sentences)
 
 # ---------------------------
-# KCI 스타일 논문 생성
+# KCI 논문 생성 + ZIP
 # ---------------------------
 def generate_paper(title, topic, api_key=None, language="ko", references=10,
                    graph_prob=0.5, image_prob=0.3, table_prob=0.2):
     sections = ["서론", "관련 연구", "연구 방법", "실험 및 결과", "논의", "결론"]
 
-    doc = Document(documentclass='article', document_options=['12pt'])
-    doc.packages.append(Command('usepackage', 'kotex'))
-    doc.packages.append(Command('usepackage', 'geometry', options='a4paper, top=2.5cm, bottom=2.5cm, left=3cm, right=3cm'))
-    doc.packages.append(Command('usepackage', 'setspace'))
-    doc.packages.append(Command('usepackage', 'graphicx'))
-    doc.packages.append(Command('usepackage', 'caption'))
-    doc.packages.append(Command('usepackage', 'booktabs'))
-    doc.packages.append(Command('usepackage', 'natbib'))
-    doc.packages.append(Command('usepackage', 'amsmath'))
+    doc = Document(documentclass='article', document_options=['12pt', 'onecolumn'])
+    doc.packages.append(Command('usepackage','kotex'))
+    doc.packages.append(Command('usepackage','geometry',options='a4paper, top=2.5cm, bottom=2.5cm, left=3cm, right=3cm'))
+    doc.packages.append(Command('usepackage','setspace'))
+    doc.packages.append(Command('usepackage','graphicx'))
+    doc.packages.append(Command('usepackage','caption'))
+    doc.packages.append(Command('usepackage','booktabs'))
+    doc.packages.append(Command('usepackage','natbib'))
+    doc.packages.append(Command('usepackage','amsmath'))
 
     # 제목/저자
     doc.preamble.append(Command('title', title))
-    doc.preamble.append(Command('author', "강상규"))
+    doc.preamble.append(Command('author',"강상규"))
     doc.preamble.append(Command('date', NoEscape(r'\today')))
     doc.append(NoEscape(r'\maketitle'))
 
     # 초록
-    doc.append(NoEscape(r'\begin{abstract}'))
-    abstract_text = clean_section_text(ask_question(f"'{topic}' 주제 초록(Abstract) 작성, 150~200단어", language, api_key=api_key))
+    doc.append(NoEscape(r'\section*{초록}'))
+    abstract_text = clean_section_text(ask_question(f"'{topic}' 주제 초록 작성, 150~200단어", language, api_key=api_key))
     doc.append(NoEscape(abstract_text))
-    doc.append(NoEscape(r'\end{abstract}'))
 
     # 키워드
-    keywords_text = extract_keywords(ask_question(f"'{topic}' 주제 키워드 5개 생성", language, api_key=api_key))
-    doc.append(NoEscape(r'\textbf{Keywords}: ' + keywords_text))
+    doc.append(NoEscape(r'\section*{주제}'))
+    keywords_text = extract_keywords(ask_question(f"'{topic}' 주제 키워드 6개 이상 생성", language, api_key=api_key))
+    doc.append(NoEscape(keywords_text))
     doc.append(Command('newpage'))
 
-    # BibTeX
+    # Bib
     bib_entries = generate_bibtex(topic, references, language, api_key=api_key)
     bib_file = "references.bib"
     with open(bib_file, 'w', encoding='utf-8') as f:
         f.write("\n\n".join(bib_entries))
 
     # Bib 키 목록
-    bib_keys = []
-    for entry in bib_entries:
-        m = re.search(r'@.*?\{(.*?),', entry)
-        if m:
-            bib_keys.append(m.group(1))
+    bib_keys = [re.search(r'@.*?\{(.*?),', entry).group(1) for entry in bib_entries if re.search(r'@.*?\{(.*?),', entry)]
+
+    # 생성 파일 목록
+    generated_files = [bib_file]
 
     for sec in sections:
         doc.append(NoEscape(f"\\section{{{sec}}}"))
         section_text = clean_section_text(
             ask_question(
-                f"'{topic}' 주제에 대해 '{sec}' 섹션 작성, 최소 300단어. "
-                + ("수학적 이론과 분석 결과 포함, 그래프/표 필요"
-                   if sec in ["실험 및 결과", "연구 방법"] else ""),
-                language,
-                api_key=api_key
+                f"'{topic}' 주제 '{sec}' 섹션 작성, 최소 300단어" + \
+                (" 수학적 분석, 그래프/표 포함" if sec in ["연구 방법","실험 및 결과"] else ""),
+                language, api_key=api_key
             ),
             section_title=sec
         )
         section_text = insert_cites(section_text, bib_keys, prob=0.2)
         doc.append(NoEscape(section_text))
 
-        # 그래프: 실험/분석 섹션은 무조건, 나머지는 확률
-        if sec in ["실험 및 결과", "연구 방법"] or random.random() < graph_prob:
+        # 그래프
+        if sec in ["연구 방법","실험 및 결과"] or random.random() < graph_prob:
             graph_path = generate_graph(sec, topic, figure_number=1, language=language, api_key=api_key)
             if graph_path:
                 insert_figure(doc, graph_path, f"{sec} 관련 그래프")
+                generated_files.append(graph_path)
 
-        # 이미지: 확률적으로
+        # 이미지
         if random.random() < image_prob:
             image_files = generate_images(api_key, topic, sec, count=1)
             for img_file in image_files:
                 insert_figure(doc, img_file, f"{sec} 관련 이미지")
+                generated_files.append(img_file)
 
-        # 표: 확률적으로
+        # 표
         if random.random() < table_prob:
             table_code = generate_table(sec, topic, language, api_key=api_key)
             if table_code:
@@ -241,5 +235,11 @@ def generate_paper(title, topic, api_key=None, language="ko", references=10,
     tex_file = f"{title}.tex"
     with open(tex_file, 'w', encoding='utf-8') as f:
         f.write(doc.dumps())
+    generated_files.append(tex_file)
 
-    return [tex_file, bib_file]
+    # ZIP 파일 생성
+    zip_file = f"{title}_files.zip"
+    with zipfile.ZipFile(zip_file, 'w') as zf:
+        for file in generated_files:
+            zf.write(file)
+    return zip_file
