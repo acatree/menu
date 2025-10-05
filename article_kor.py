@@ -82,13 +82,13 @@ def generate_graph(section_title, topic, figure_number=1, language="ko", api_key
 # 테이블 생성
 # ---------------------------
 def generate_table(section_title, topic, table_number=1, language="ko", api_key=None):
-    table_code = ask_question(
-        f"'{topic}' 주제 관련 LaTeX tabular 코드 생성. "
-        f"표 번호 {table_number}, 캡션 {language}. "
-        "⚠ tabular 환경만, \\documentclass, \\begin{{document}}, \\end{{document}} 포함하지 말 것.",
-        language,
-        api_key=api_key
+    prompt = (
+        f"'{topic}' 주제의 '{section_title}' 섹션과 관련된 표를 LaTeX tabular 형식으로 생성하라. "
+        f"⚠ 오직 tabular 환경만 출력하고, 절대로 "
+        f"\\documentclass, \\usepackage, \\begin{{document}}, \\end{{document}} 등을 포함하지 마라. "
+        f"표 번호는 {table_number}, 캡션은 한국어로 작성하라."
     )
+    table_code = ask_question(prompt, language, api_key=api_key)
     return table_code
 
 # ---------------------------
