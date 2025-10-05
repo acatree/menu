@@ -5,6 +5,12 @@ import os
 from ebook import generate_latex, openai
 import subprocess
 import youtube
+from openai import OpenAI
+import os, zipfile
+from io import BytesIO
+
+app = Flask(__name__)
+
 
 app = Flask(__name__)
 # ===== 기본 데이터 =====
@@ -117,14 +123,14 @@ def index7():
     if request.method == "POST":
         try:
             apikey = request.form.get("apikey")
-            openai.api_key = apikey
+            client = OpenAI(api_key=apikey)
 
             title = request.form.get("title")
             topic = request.form.get("topic")
             references = int(request.form.get("references", 10))
-            language = request.form.get("language", "ko")  # 기본값: 한국어
+            language = request.form.get("language", "ko")
 
-            # 언어별 모듈 분기
+            # 언어별 논문 생성기 선택
             if language == "ko":
                 from article_kor import generate_paper
             else:
@@ -132,12 +138,10 @@ def index7():
 
             # 논문 생성
             generated_files = generate_paper(
-                title, topic, language=language, references=references
+                title, topic, language=language, references=references, client=client
             )
 
-            # ZIP 파일 생성
-            import zipfile
-            from io import BytesIO
+            # ZIP 파일로 묶기
             memory_file = BytesIO()
             with zipfile.ZipFile(memory_file, "w") as zf:
                 for file_path in generated_files:
@@ -146,7 +150,7 @@ def index7():
 
             return send_file(
                 memory_file,
-                download_name=f"{title}.zip",  # Flask 2.3 이상은 attachment_filename 대신 download_name
+                download_name=f"{title}.zip",
                 as_attachment=True,
             )
 
@@ -154,6 +158,7 @@ def index7():
             error = str(e)
 
     return render_template("index7.html", error=error)
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5001, debug=True)
