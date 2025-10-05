@@ -120,8 +120,7 @@ def index7():
     if request.method == "POST":
         try:
             apikey = request.form.get("apikey")
-            openai.api_key = apikey
-
+        
             title = request.form.get("title")
             topic = request.form.get("topic")
             references = int(request.form.get("references", 10))
@@ -155,7 +154,6 @@ def index7():
             error = str(e)
 
     return render_template("index7.html", error=error)
-
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5001, debug=True)
