@@ -1,4 +1,4 @@
-import os, requests, io, contextlib, traceback
+import pandas, os, requests, io, contextlib, traceback
 import matplotlib.pyplot as plt
 from pylatex import NoEscape
 from openai_utils import ask_question
@@ -74,3 +74,32 @@ def insert_figure(doc, file_path, caption_text):
     doc.append(NoEscape(f"\includegraphics[width=0.9\\textwidth]{{{file_path}}}"))
     doc.append(NoEscape(f"\caption{{{caption_text}}}"))
     doc.append(NoEscape(r"\end{figure}"))
+
+def generate_table(section_title, topic, api_key=None):
+    """
+    주제 및 섹션에 맞는 간단한 표를 생성하여 LaTeX 표 형태로 반환
+    """
+    from .openai_utils import ask_question
+
+    try:
+        # OpenAI에게 표 생성 요청
+        prompt = (
+            f"'{topic}' 주제의 '{section_title}' 섹션을 위한 데이터 표를 작성해줘. "
+            "3~5개의 열(column)과 5~10개의 행(row)을 가지며, "
+            "수치형 데이터(숫자 포함)를 중심으로 작성하고, "
+            "각 열 이름은 명확히 라벨링해줘. "
+            "CSV 형식으로 출력해."
+        )
+
+        csv_text = ask_question(prompt, api_key=api_key)
+
+        # CSV 형태로 파싱
+        df = pd.read_csv(io.StringIO(csv_text))
+
+        # LaTeX 표로 변환
+        latex_table = df.to_latex(index=False, escape=False)
+        return latex_table
+
+    except Exception as e:
+        print(f"[generate_table error] {e}")
+        return None
