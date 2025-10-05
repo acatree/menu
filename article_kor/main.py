@@ -37,7 +37,6 @@ def generate_paper(topic, api_key=None):
 
     # 줄간격
     doc.append(NoEscape(r'\onehalfspacing'))
-
     # 제목 스타일
     doc.preamble.append(NoEscape(r'\title{\Large\bfseries ' + creative_title + '}'))
     doc.preamble.append(NoEscape(r'\author{강상규}'))
