@@ -4,9 +4,7 @@ import matplotlib.pyplot as plt
 import openai
 
 openai.api_key = None  # Flask 또는 환경변수에서 세팅
-# ---------------------------
-# ChatGPT 요청 함수
-# ---------------------------
+
 def ask_question(question, language="ko", api_key=None):
     if api_key:
         openai.api_key = api_key
