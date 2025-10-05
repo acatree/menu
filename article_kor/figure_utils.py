@@ -66,7 +66,6 @@ def generate_graph(section_title, topic, figure_number=1, language="ko", api_key
         return ""
 
     return fig_path
-
 # -----------------------------
 # LaTeX figure 삽입
 # -----------------------------
