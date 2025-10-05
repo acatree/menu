@@ -1,8 +1,8 @@
 def ask_question(question, language="en", api_key=None):
     """
     Send a request to OpenAI to generate academic-style text.
-    -Fully English prompts for real estate/economics context.
-    -Respects section style and word count requirements.
+    Fully English prompts for real estate/economics context.
+    Respects section style and word count requirements.
     """
     if api_key:
         import openai
