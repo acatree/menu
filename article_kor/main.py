@@ -140,9 +140,9 @@ def generate_paper(topic, api_key=None):
             doc.append(NoEscape(text))
 
         # 모든 섹션 이미지 삽입
-        imgs = figure_utils.generate_images(api_key, research_topic, sec)
-        for img in imgs:
-            figure_utils.insert_figure(doc, img, f"{sec} 관련 이미지")
+#        imgs = figure_utils.generate_images(api_key, research_topic, sec)
+#        for img in imgs:
+#            figure_utils.insert_figure(doc, img, f"{sec} 관련 이미지")
 
         doc.append(Command('newpage'))
 
