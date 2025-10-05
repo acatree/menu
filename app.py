@@ -120,7 +120,7 @@ def index7():
     if request.method == "POST":
         try:
             apikey = request.form.get("apikey")
-            client = OpenAI(api_key=apikey)
+            openai.api_key = apikey
 
             title = request.form.get("title")
             topic = request.form.get("topic")
@@ -135,7 +135,7 @@ def index7():
 
             # 논문 생성
             generated_files = generate_paper(
-                title, topic, language=language, references=references, client=client
+                title, topic, api_key=apikey, language=language, references=references
             )
 
             # ZIP 파일로 묶기
