@@ -1,14 +1,11 @@
-import os
+import os, io, requests
 from pylatex import Document, Command, NoEscape
 import openai
 import matplotlib.pyplot as plt
 import contextlib
-import io
-import requests
 from openai import OpenAI
 
 openai.api_key = None  # Flask 또는 환경변수에서 세팅
-
 # ---------------------------
 # ChatGPT 요청 함수
 # ---------------------------
