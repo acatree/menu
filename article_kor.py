@@ -2,6 +2,7 @@ import os, io, requests, contextlib, re, random, zipfile
 from pylatex import Document, Command, NoEscape
 import matplotlib.pyplot as plt
 import openai
+
 openai.api_key = None  # Flask 또는 환경변수에서 세팅
 
 # ---------------------------
@@ -127,7 +128,7 @@ def insert_figure(doc, file_path, caption_text):
 def generate_table(section_title, topic, language="ko", api_key=None):
     prompt = (
         f"'{topic}' 주제의 '{section_title}' 섹션 관련 LaTeX tabular 표 생성. "
-        "오직 tabular 환경만 출력, 표가 단 두 칸 기준에 맞도록 0.9\\textwidth 조정"
+        "오직 tabular 환경만 출력, 폭 0.9\\textwidth 조정"
     )
     return ask_question(prompt, language, api_key=api_key)
 
@@ -159,11 +160,11 @@ def insert_cites(text, bib_keys, prob=0.2):
     return ' '.join(sentences)
 
 # ---------------------------
-# 논문 생성 (2단, 단폭 맞춤)
+# 논문 생성 (단 1개)
 # ---------------------------
 def generate_paper(title, topic, api_key=None, language="ko", references=10):
     sections = ["서론", "관련 연구", "연구 방법", "실험 및 결과", "논의", "결론"]
-    doc = Document(documentclass='article', document_options=['12pt', 'twocolumn'])
+    doc = Document(documentclass='article', document_options=['12pt'])
     doc.packages.append(Command('usepackage', 'kotex'))
     doc.packages.append(Command('usepackage', 'geometry', options='a4paper, top=2.5cm, bottom=2.5cm, left=3cm, right=3cm'))
     doc.packages.append(Command('usepackage', 'setspace'))
@@ -179,7 +180,7 @@ def generate_paper(title, topic, api_key=None, language="ko", references=10):
     # 제목/저자
     doc.preamble.append(Command('title', title))
     doc.preamble.append(Command('author', "강상규"))
-    # doc.preamble.append(Command('date', NoEscape(r'\today')))
+    doc.preamble.append(Command('date', NoEscape(r'\today')))
     doc.append(NoEscape(r'\maketitle'))
 
     # 초록
@@ -230,7 +231,7 @@ def generate_paper(title, topic, api_key=None, language="ko", references=10):
             doc.append(NoEscape(r"\end{table}"))
 
         # 이미지
-        image_files = generate_images(api_key, topic, sec, count=1)
+        image_files = generate_images(api_key, topic, sec,count=1)
         for img_file in image_files:
             insert_figure(doc, img_file, f"{sec} 관련 이미지")
 
@@ -244,14 +245,15 @@ def generate_paper(title, topic, api_key=None, language="ko", references=10):
     with open(tex_file, 'w', encoding='utf-8') as f:
         f.write(doc.dumps())
 
-    # ZIP 생성
+    # 최종 ZIP 생성 (중첩 ZIP 제거)
     zip_file = f"{title}_files.zip"
-    with zipfile.ZipFile(zip_file, 'w') as zipf:
+    with zipfile.ZipFile(zip_file, 'w', zipfile.ZIP_DEFLATED) as zipf:
         zipf.write(tex_file)
         zipf.write(bib_file)
         for folder in ["images", "graphs"]:
             if os.path.exists(folder):
                 for file in os.listdir(folder):
-                    zipf.write(os.path.join(folder, file))
+                    zipf.write(os.path.join(folder, file),
+                               arcname=os.path.join(folder, file))  # 폴더 구조 유지
+
     return tex_file, bib_file, zip_file
-    
