@@ -143,7 +143,6 @@ def generate_paper(topic, api_key=None):
 #        imgs = figure_utils.generate_images(api_key, research_topic, sec)
 #        for img in imgs:
 #            figure_utils.insert_figure(doc, img, f"{sec} 관련 이미지")
-
         doc.append(Command('newpage'))
 
     # 7. 참고문헌
