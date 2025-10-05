@@ -7,7 +7,6 @@ def generate_bibtex(topic, num_refs=10, language="ko", api_key=None):
     citation key를 숫자순(ref1, ref2, ...)으로 지정
     """
     entries = []
-
     for i in range(1, num_refs + 1):
         raw_entry = ask_question(
             f"Generate a complete BibTeX @article entry for a scientific paper on '{topic}'. "
@@ -16,7 +15,6 @@ def generate_bibtex(topic, num_refs=10, language="ko", api_key=None):
             language=language,
             api_key=api_key
         )
-
         # 중첩 중괄호 포함 전체 BibTeX 블록 추출
         match = re.search(r'@(\w+)\{([^,]+),', raw_entry)
         if match:
