@@ -6,6 +6,7 @@ def generate_paper(topic, api_key=None):
     """
     주제를 입력하면 창의적 연구 제목과 연구주제를 생성하고,
     각 섹션별 최소 글자 수를 조절하여 SCI/KCI 수준 논문 초안 생성
+    분석 섹션에서는 실제 통계 데이터 + 수학적 모델 + 그래프 포함
     """
     # 1. 창의적 연구 제목/주제 생성
     creative_title = openai_utils.ask_question(
