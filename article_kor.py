@@ -33,9 +33,12 @@ def generate_images(api_key, topic, section_title, count=1):
 
     for i in range(count):
         prompt = (
-            f"'{topic}' 주제의 '{section_title}' 섹션을 시각적으로 표현한 장면. "
-            "직접적인 인물 이름이나 브랜드 없이 묘사적, 추상적 스타일."
+            f"'{topic}' 주제의 '{section_title}' 섹션에 적합한 학술용 시각 자료 생성. "
+            "논문에 들어갈 수 있는 형태의 데이터 시각화, 그래프, 구조 다이어그램, 실험 결과 시각화 등. "
+            "직접적인 인물 이름이나 브랜드는 제외. "
+            "깔끔하고 전문적인 스타일, 발표/논문용 그림 느낌. 흑백그림, 스케치 등"
         )
+        
         # 이미지 생성 재시도
         for attempt in range(3):
             response = openai.images.generate(
