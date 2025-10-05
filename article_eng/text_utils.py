@@ -29,4 +29,3 @@ def insert_cites(text, bib_keys, prob=0.2):
             key = random.choice(bib_keys)
             sentences[i] = s + f" \\cite{{{key}}}"
     return ' '.join(sentences)
-    
