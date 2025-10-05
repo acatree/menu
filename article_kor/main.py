@@ -155,7 +155,7 @@ def generate_paper(topic, api_key=None):
     doc.append(NoEscape(r"\bibliography{references}"))
 
     # 8. LaTeX 저장
-    tex_file = f"{creative_title}.tex"
+    tex_file = f"main.tex"
     doc.generate_tex(tex_file.replace(".tex",""))
 
     # 9. 이미지와 그래프 파일 수집
