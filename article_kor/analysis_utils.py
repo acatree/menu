@@ -5,14 +5,6 @@ from . import openai_utils, figure_utils, text_utils
 from .latex_utils import finalize_latex_output
 from pylatex import NoEscape, Command
 
-
-# analysis_utils.py
-import pandas as pd
-import numpy as np
-from . import openai_utils, figure_utils, text_utils
-from .latex_utils import finalize_latex_output
-from pylatex import NoEscape, Command
-
 def fetch_real_data(topic):
     """
     주제에 맞는 실제 데이터 불러오기
