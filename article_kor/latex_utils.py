@@ -1,11 +1,5 @@
 import re
 def escape_latex_special_chars(text):
-    commands = re.findall(r"\\[a-zA-Z]+(\{.*?\})*", text)
-    placeholders = [f"__CMD{i}__" for i in range(len(commands))]
-    
-    for ph, cmd in zip(placeholders, commands):
-        text = text.replace(cmd, ph)
-
     replacements = {
         '%': r'\%',
         '$': r'\$',
@@ -15,11 +9,6 @@ def escape_latex_special_chars(text):
     }
     for k, v in replacements.items():
         text = text.replace(k, v)
-
-    # LaTeX 명령어 복원
-    for ph, cmd in zip(placeholders, commands):
-        text = text.replace(ph, cmd)
-    
     return text
 
 def convert_text_table_to_latex(text):
