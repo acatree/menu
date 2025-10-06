@@ -7,15 +7,7 @@ from . import text_utils
 from . import figure_utils
 from . import bib_utils
 
-
 def generate_paper(topic, authors=None, affiliations=None, emails=None, api_key=None):
-    """
-    전문 학술 논문 스타일 LaTeX 생성
-    - scrartcl 기반
-    - 저자, 소속, 이메일 포함
-    - 표/그래프 전문 스타일 적용
-    """
-
     # 1. 창의적 연구 제목/주제
     creative_title = openai_utils.ask_question(
         f"'{topic}'와 관련되면서 창의적이고 아직 시도되지 않은 연구 논문 제목을 생성하세요. 인용부호 제거",
