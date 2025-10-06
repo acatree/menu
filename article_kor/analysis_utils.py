@@ -2,7 +2,6 @@
 import pandas as pd
 import numpy as np
 from . import openai_utils, figure_utils, text_utils
-from .latex_utils import finalize_latex_output
 from pylatex import NoEscape, Command
 
 def fetch_real_data(topic):
