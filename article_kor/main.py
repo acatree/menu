@@ -4,7 +4,7 @@ sys.path.append(os.path.dirname(__file__))
 from pylatex import Document, Command, NoEscape, Package
 import re
 from . import openai_utils, text_utils, figure_utils, bib_utils
-from . import latex_utils, analysis_utils
+from . import analysis_utils
 
 def generate_paper(topic, authors=None, affiliations=None, emails=None, api_key=None):
     """
