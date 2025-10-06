@@ -16,7 +16,6 @@ def escape_latex_special_chars(text):
         text = text.replace(k, v)
     return text
 
-
 def convert_text_table_to_latex(text):
     """
     텍스트 형태 표 자동 변환 → LaTeX tabular 환경
@@ -51,9 +50,7 @@ def convert_text_table_to_latex(text):
         latex.append(r"\end{table}")
 
         return "\n".join(latex)
-
     return re.sub(pattern, make_table, text)
-
 
 def finalize_latex_output(text):
     """
