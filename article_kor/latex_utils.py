@@ -50,7 +50,7 @@ def convert_text_table_to_latex(text):
 def finalize_latex_output(text):
     text = re.sub(r"^\s*(초록|Abstract)[:：]?\s*", "", text, flags=re.IGNORECASE | re.MULTILINE)
     # 표 변환 전에 escape
-    text = escape_latex_special_chars(text)
+    #text = escape_latex_special_chars(text)
     # 표 변환
     #text = convert_text_table_to_latex(text)
     return text
