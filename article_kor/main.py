@@ -5,8 +5,6 @@ from pylatex import Document, Command, NoEscape, Package
 import re
 from . import openai_utils, text_utils, figure_utils, bib_utils
 from . import latex_utils, analysis_utils
-from latex_utils import finalize_latex_output
-from analysis_utils import generate_analysis_section  # ✅ 분석 섹션 분리
 
 def generate_paper(topic, authors=None, affiliations=None, emails=None, api_key=None):
     """
@@ -106,7 +104,7 @@ def generate_paper(topic, authors=None, affiliations=None, emails=None, api_key=
         min_words = section_requirements.get(sec, 300)
 
         if sec == "분석":
-            df = generate_analysis_section(doc, creative_title, sec, min_words, api_key)
+            df = analysis_utils.generate_analysis_section(doc, creative_title, sec, min_words, api_key)
         else:
             text_exp = openai_utils.ask_question(
                 f"'{creative_title}' '{sec}' 섹션 작성, 최소 {min_words}단어 이상.",
@@ -114,7 +112,7 @@ def generate_paper(topic, authors=None, affiliations=None, emails=None, api_key=
             )
             text = text_utils.clean_section_text(text_exp, remove_title=True, section_title=sec)
             text = text_utils.insert_cites(text, bib_keys)
-            text = finalize_latex_output(text)
+            text = latex_utils.finalize_latex_output(text)
             doc.append(NoEscape(text))
 
         doc.append(Command('newpage'))
