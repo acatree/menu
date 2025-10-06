@@ -29,8 +29,8 @@ def generate_paper(topic, authors=None, affiliations=None, emails=None, api_key=
     # 2. LaTeX scrartcl 설정
     doc = Document(documentclass='scrartcl', document_options=['11pt', 'a4paper'])
 
-    # 패키지
-    doc.packages.extend([
+    # Add packages safely (OrderedSet supports only .append)
+    for pkg in [
         Package('geometry', options=['margin=1in']),
         Package('graphicx'),
         Package('amsmath'),
@@ -38,12 +38,13 @@ def generate_paper(topic, authors=None, affiliations=None, emails=None, api_key=
         Package('siunitx'),
         Package('hyperref', options='colorlinks=true, linkcolor=blue, citecolor=blue, urlcolor=blue'),
         Package('caption', options='font=small,labelfont=bf'),
-        Package('booktabs'),
+       Package('booktabs'),
         Package('setspace'),
         Package('titlesec'),
         Package('float'),
         Package('kotex')
-    ])
+    ]:
+   doc.packages.append(pkg)
 
     # Section/Subsection 스타일
     doc.append(NoEscape(r'\titleformat{\section}{\Large\bfseries}{\thesection}{1em}{}'))
