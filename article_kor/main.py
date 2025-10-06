@@ -77,7 +77,7 @@ def generate_paper(topic, authors=None, affiliations=None, emails=None, api_key=
         f"'{research_topic}'에 대한 논문 초록을 180~220단어로 작성",
         api_key=api_key
     )
-    doc.append(NoEscape(text_utils.clean_section_text(abstract_text)))
+    doc.append(NoEscape(latex_utils.finalize_latex_output(text_utils.clean_section_text(abstract_text))))
     doc.append(NoEscape(r'\end{abstract}'))
     doc.append(NoEscape(r'\textbf{키워드:} ' + text_utils.extract_keywords(abstract_text, api_key=api_key)))
     doc.append(Command('newpage'))
