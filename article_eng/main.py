@@ -7,14 +7,7 @@ from . import text_utils
 from . import figure_utils
 from . import bib_utils
 
-def generate_real_estate_paper(topic, authors=None, affiliations=None, emails=None, api_key=None):
-    """
-    Generate a professional real estate / economics academic paper in LaTeX
-    - scrartcl based
-    - authors, affiliations, emails included
-    - regression tables and graphs formatted professionally
-    """
-
+def generate_paper(topic, authors=None, affiliations=None, emails=None, api_key=None):
     # 1. Creative research title
     creative_title = openai_utils.ask_question(
         f"Generate a novel and creative research paper title related to real estate or economics for '{topic}'. Remove quotation marks.",
