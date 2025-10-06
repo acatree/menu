@@ -27,7 +27,6 @@ def generate_real_estate_paper(topic, authors=None, affiliations=None, emails=No
     )
 
     # 2. LaTeX setup
-        # 2. LaTeX scrartcl 설정
     doc = Document(documentclass='scrartcl', document_options=['11pt', 'a4paper'])
 
     # Add packages safely (OrderedSet supports only .append)
@@ -45,16 +44,21 @@ def generate_real_estate_paper(topic, authors=None, affiliations=None, emails=No
         Package('float'),
         Package('kotex')
     ]:
-    doc.packages.append(pkg)
+        doc.packages.append(pkg)
+
+    # Section/Subsection formatting
     doc.append(NoEscape(r'\titleformat{\section}{\Large\bfseries}{\thesection}{1em}{}'))
     doc.append(NoEscape(r'\titleformat{\subsection}{\large\bfseries}{\thesubsection}{0.75em}{}'))
     doc.append(NoEscape(r'\titleformat{\subsubsection}{\normalsize\bfseries}{\thesubsubsection}{0.5em}{}'))
     doc.append(NoEscape(r'\onehalfspacing'))
 
     # 3. Authors / Affiliations / Emails
-    if authors is None: authors = ["Sangkyu Kang"]
-    if affiliations is None: affiliations = ["Department of Economics, Korea University, Seoul, Korea"]
-    if emails is None: emails = ["sangkyu@example.com"]
+    if authors is None:
+        authors = ["Sangkyu Kang"]
+    if affiliations is None:
+        affiliations = ["Department of Economics, Korea University, Seoul, Korea"]
+    if emails is None:
+        emails = ["sangkyu@example.com"]
 
     author_texts = [f"{a}\\thanks{{{aff}. Email: {em}}}" for a, aff, em in zip(authors, affiliations, emails)]
     doc.preamble.append(NoEscape(r'\title{\Large\bfseries ' + creative_title + '}'))
@@ -105,6 +109,7 @@ def generate_real_estate_paper(topic, authors=None, affiliations=None, emails=No
                 "as a pandas DataFrame named 'df', 5-6 columns, 20-30 rows, with numeric variables suitable for regression analysis."
             )
             data_code = openai_utils.ask_question(data_prompt, api_key=api_key)
+
             try:
                 if "df" not in data_code:
                     data_code = f"import pandas as pd\nimport numpy as np\ndf = {data_code}"
@@ -112,10 +117,10 @@ def generate_real_estate_paper(topic, authors=None, affiliations=None, emails=No
                 df = local_env.get("df", None)
             except Exception:
                 df = pd.DataFrame({
-                    "Price": np.random.rand(20)*500000 + 50000,
+                    "Price": np.random.rand(20) * 500000 + 50000,
                     "Size": np.random.randint(50, 200, 20),
-                    "Bedrooms": np.random.randint(1,5,20),
-                    "DistanceToCenter": np.random.rand(20)*20,
+                    "Bedrooms": np.random.randint(1, 5, 20),
+                    "DistanceToCenter": np.random.rand(20) * 20,
                     "Income": np.random.randint(2000, 8000, 20)
                 })
 
@@ -170,5 +175,3 @@ def generate_real_estate_paper(topic, authors=None, affiliations=None, emails=No
                 asset_files.append(os.path.join(folder, file))
 
     return tex_file, "references.bib", asset_files, creative_title, research_topic
-
-
