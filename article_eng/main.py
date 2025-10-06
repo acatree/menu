@@ -27,8 +27,11 @@ def generate_real_estate_paper(topic, authors=None, affiliations=None, emails=No
     )
 
     # 2. LaTeX setup
+        # 2. LaTeX scrartcl 설정
     doc = Document(documentclass='scrartcl', document_options=['11pt', 'a4paper'])
-    doc.packages.extend([
+
+    # Add packages safely (OrderedSet supports only .append)
+    for pkg in [
         Package('geometry', options=['margin=1in']),
         Package('graphicx'),
         Package('amsmath'),
@@ -41,7 +44,8 @@ def generate_real_estate_paper(topic, authors=None, affiliations=None, emails=No
         Package('titlesec'),
         Package('float'),
         Package('kotex')
-    ])
+    ]:
+    doc.packages.append(pkg)
     doc.append(NoEscape(r'\titleformat{\section}{\Large\bfseries}{\thesection}{1em}{}'))
     doc.append(NoEscape(r'\titleformat{\subsection}{\large\bfseries}{\thesubsection}{0.75em}{}'))
     doc.append(NoEscape(r'\titleformat{\subsubsection}{\normalsize\bfseries}{\thesubsubsection}{0.5em}{}'))
