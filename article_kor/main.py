@@ -75,6 +75,9 @@ def generate_paper(topic, authors=None, affiliations=None, emails=None, api_key=
     doc.append(NoEscape(r'\textbf{키워드:} ' + text_utils.extract_keywords(abstract_text, api_key=api_key)))
     doc.append(Command('newpage'))
 
+    doc.append(NoEscape(r'\tableofcontents')) 
+    doc.append(Command('newpage'))
+
     # 5. 참고문헌
     bib_entries = bib_utils.generate_bibtex(research_topic, 10, api_key=api_key)
     with open("references.bib", 'w', encoding='utf-8') as f:
@@ -84,10 +87,10 @@ def generate_paper(topic, authors=None, affiliations=None, emails=None, api_key=
     # 6. 섹션별 작성
     section_requirements = {
         "서론": 300,
-        "관련 연구": 350,
-        "연구 방법": 300,
+        "관련 연구": 550,
+        "연구 방법": 400,
         "분석": 600,
-        "결론": 250
+        "결론": 500
     }
     sections = ["서론", "관련 연구", "연구 방법", "분석", "결론"]
 
