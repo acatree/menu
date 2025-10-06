@@ -1,4 +1,3 @@
-# generate_paper.py
 import sys, os
 sys.path.append(os.path.dirname(__file__))
 from pylatex import Document, Command, NoEscape, Package
