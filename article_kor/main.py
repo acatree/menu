@@ -112,7 +112,6 @@ def generate_paper(topic, authors=None, affiliations=None, emails=None, api_key=
             )
             text = text_utils.clean_section_text(text_exp, remove_title=True, section_title=sec)
             text = text_utils.insert_cites(text, bib_keys)
-            text = latex_utils.finalize_latex_output(text)
             doc.append(NoEscape(text))
 
         doc.append(Command('newpage'))
