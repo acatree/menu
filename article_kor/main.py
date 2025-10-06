@@ -38,13 +38,13 @@ def generate_paper(topic, authors=None, affiliations=None, emails=None, api_key=
         Package('siunitx'),
         Package('hyperref', options='colorlinks=true, linkcolor=blue, citecolor=blue, urlcolor=blue'),
         Package('caption', options='font=small,labelfont=bf'),
-       Package('booktabs'),
+        Package('booktabs'),
         Package('setspace'),
         Package('titlesec'),
         Package('float'),
         Package('kotex')
     ]:
-   doc.packages.append(pkg)
+        doc.packages.append(pkg)
 
     # Section/Subsection 스타일
     doc.append(NoEscape(r'\titleformat{\section}{\Large\bfseries}{\thesection}{1em}{}'))
@@ -55,9 +55,12 @@ def generate_paper(topic, authors=None, affiliations=None, emails=None, api_key=
     doc.append(NoEscape(r'\onehalfspacing'))
 
     # 3. 제목 / 저자 / 소속 / 이메일
-    if authors is None: authors = ["강상규"]
-    if affiliations is None: affiliations = ["Department of Physics, Korea University, Seoul, Korea"]
-    if emails is None: emails = ["sangkyu@example.com"]
+    if authors is None:
+        authors = ["강상규"]
+    if affiliations is None:
+        affiliations = ["Department of Physics, Korea University, Seoul, Korea"]
+    if emails is None:
+        emails = ["sangkyu@example.com"]
 
     author_texts = []
     for a, aff, em in zip(authors, affiliations, emails):
@@ -120,9 +123,9 @@ def generate_paper(topic, authors=None, affiliations=None, emails=None, api_key=
                 df = pd.DataFrame({
                     "변수1": np.random.rand(20),
                     "변수2": np.random.randint(10, 100, 20),
-                    "변수3": np.random.normal(0,1,20),
-                    "변수4": np.linspace(1,10,20),
-                    "변수5": np.random.choice(["A","B","C"],20)
+                    "변수3": np.random.normal(0, 1, 20),
+                    "변수4": np.linspace(1, 10, 20),
+                    "변수5": np.random.choice(["A", "B", "C"], 20)
                 })
 
             # 분석 텍스트
@@ -175,3 +178,4 @@ def generate_paper(topic, authors=None, affiliations=None, emails=None, api_key=
                 asset_files.append(os.path.join(folder, file))
 
     return tex_file, "references.bib", asset_files, creative_title, research_topic
+        
