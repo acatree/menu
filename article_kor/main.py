@@ -4,8 +4,9 @@ sys.path.append(os.path.dirname(__file__))
 from pylatex import Document, Command, NoEscape, Package
 import re
 from . import openai_utils, text_utils, figure_utils, bib_utils
-from .latex_utils import finalize_latex_output
-from .analysis_utils import generate_analysis_section  # ✅ 분석 섹션 분리
+from . import latex_utils, analysis_utils
+from latex_utils import finalize_latex_output
+from analysis_utils import generate_analysis_section  # ✅ 분석 섹션 분리
 
 def generate_paper(topic, authors=None, affiliations=None, emails=None, api_key=None):
     """
