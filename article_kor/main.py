@@ -5,11 +5,6 @@ import re
 from . import openai_utils, text_utils, figure_utils, bib_utils, analysis_utils
 
 def generate_paper(topic, authors=None, affiliations=None, emails=None, api_key=None):
-    """
-    주어진 주제(topic)를 기반으로 창의적 LaTeX 논문 생성
-    - 제목, 초록, 섹션(서론~결론), 참고문헌 자동 생성
-    - '분석' 섹션은 analysis_utils에서 처리
-    """
     # ---------------------------
     # 1. 제목 / 주제 요약
     # ---------------------------
