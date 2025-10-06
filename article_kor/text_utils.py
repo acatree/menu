@@ -1,4 +1,5 @@
 import re, random
+from pylatex import NoEscape
 
 def clean_section_text(text, remove_title=False, section_title=""):
     text = re.sub(r'^#+\s*', '', text, flags=re.MULTILINE)
@@ -31,12 +32,16 @@ def extract_keywords(text, num=8, api_key=None, language="ko"):
     # 모델 출력 후 공백 제거, 단어별로 쉼표 연결
     keywords = [k.strip() for k in keywords_text.replace('\n','').split(',') if k.strip()]
     return ', '.join(keywords[:num])
-    
-def insert_cites(text, bib_keys, prob=0.2):
-    import random
+
+
+def insert_cites(text, bib_keys, prob=0.2):  
+    # 문장 단위 분리
     sentences = re.split(r'(?<=[.!?])\s+', text)
+    
     for i, s in enumerate(sentences):
         if bib_keys and random.random() < prob:
             key = random.choice(bib_keys)
-            sentences[i] = s + f" \\cite{{{key}}}"
+            # citation을 NoEscape로 감싸서 {} 앞에 \가 붙는 문제 방지
+            cite_cmd = NoEscape(f"\\cite{{{key}}}")
+            sentences[i] = f"{s} {cite_cmd}"
     return ' '.join(sentences)
