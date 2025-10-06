@@ -1,5 +1,4 @@
 import re
-
 def escape_latex_special_chars(text):
     """LaTeX 특수문자 자동 이스케이프"""
     replacements = {
