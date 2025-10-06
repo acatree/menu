@@ -113,9 +113,7 @@ def generate_paper(topic, authors=None, affiliations=None, emails=None, api_key=
             text = text_utils.clean_section_text(text_exp, remove_title=True, section_title=sec)
             text = text_utils.insert_cites(text, bib_keys)
             doc.append(NoEscape(text))
-
         doc.append(Command('newpage'))
-
     # 7. 참고문헌 삽입
     doc.append(NoEscape(r"\bibliographystyle{apalike}"))
     doc.append(NoEscape(r"\bibliography{references}"))
