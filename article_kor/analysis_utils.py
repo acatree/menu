@@ -6,14 +6,6 @@ from .latex_utils import finalize_latex_output
 from pylatex import NoEscape, Command
 
 def generate_analysis_section(doc, creative_title, sec, min_words, api_key=None):
-    """
-    '분석' 섹션 전용 생성
-    - 데이터 생성 (DataFrame)
-    - 분석 텍스트 생성
-    - 그래프 삽입
-    - 표 삽입
-    """
-
     local_env = {"pd": pd, "np": np}
     df = None
 
