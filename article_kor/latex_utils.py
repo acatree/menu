@@ -6,7 +6,6 @@ def escape_latex_special_chars(text):
         '$': r'\$',
         '&': r'\&',
         '_': r'\_',
-        '#': r'\#',
         '^': r'\^{}',
         '~': r'\~{}',
     }
