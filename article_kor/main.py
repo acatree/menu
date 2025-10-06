@@ -97,7 +97,6 @@ def generate_paper(topic, authors=None, affiliations=None, emails=None, api_key=
     for sec in sections:
         doc.append(NoEscape(f"\\section{{{sec}}}"))
         min_words = section_requirements.get(sec, 300)
-
         if sec == "분석":
             import pandas as pd, numpy as np
             local_env = {"pd": pd, "np": np}
