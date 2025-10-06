@@ -1,9 +1,12 @@
 import sys, os
-sys.path.append(os.path.dirname(__file__))
+sys.path.append(os.path.dirname(__file__))  # main.py 기준
 from pylatex import Document, Command, NoEscape, Package
-import re
-from . import openai_utils, text_utils, figure_utils, bib_utils
-from . import analysis_utils
+import os, re
+from . import openai_utils
+from . import text_utils
+from . import figure_utils
+from . import bib_utils
+
 
 def generate_paper(topic, authors=None, affiliations=None, emails=None, api_key=None):
     """
@@ -26,7 +29,8 @@ def generate_paper(topic, authors=None, affiliations=None, emails=None, api_key=
 
     # 2. LaTeX scrartcl 설정
     doc = Document(documentclass='scrartcl', document_options=['11pt', 'a4paper'])
-    # 패키지
+
+    # Add packages safely (OrderedSet supports only .append)
     for pkg in [
         Package('geometry', options=['margin=1in']),
         Package('graphicx'),
@@ -59,7 +63,9 @@ def generate_paper(topic, authors=None, affiliations=None, emails=None, api_key=
     if emails is None:
         emails = ["sangkyu@example.com"]
 
-    author_texts = [f"{a}\\thanks{{{aff}. Email: {em}}}" for a, aff, em in zip(authors, affiliations, emails)]
+    author_texts = []
+    for a, aff, em in zip(authors, affiliations, emails):
+        author_texts.append(f"{a}\\thanks{{{aff}. Email: {em}}}")
 
     doc.preamble.append(NoEscape(r'\title{\Large\bfseries ' + creative_title + '}'))
     doc.preamble.append(NoEscape(r'\author{' + " \\\\ ".join(author_texts) + '}'))
@@ -75,10 +81,6 @@ def generate_paper(topic, authors=None, affiliations=None, emails=None, api_key=
     doc.append(NoEscape(text_utils.clean_section_text(abstract_text)))
     doc.append(NoEscape(r'\end{abstract}'))
     doc.append(NoEscape(r'\textbf{키워드:} ' + text_utils.extract_keywords(abstract_text, api_key=api_key)))
-    doc.append(Command('newpage'))
-
-    # 목차
-    doc.append(NoEscape(r'\tableofcontents')) 
     doc.append(Command('newpage'))
 
     # 5. 참고문헌
@@ -102,8 +104,56 @@ def generate_paper(topic, authors=None, affiliations=None, emails=None, api_key=
         min_words = section_requirements.get(sec, 300)
 
         if sec == "분석":
-            df = analysis_utils.generate_analysis_section(doc, creative_title, sec, min_words, api_key)
+            import pandas as pd, numpy as np
+            local_env = {"pd": pd, "np": np}
+            df = None
+
+            # 데이터 생성
+            data_prompt = (
+                f"'{creative_title}' 관련 통계 데이터 예시 생성. pandas DataFrame(df) "
+                "5~6개 열, 20~30행 포함."
+            )
+            data_code = openai_utils.ask_question(data_prompt, api_key=api_key)
+
+            try:
+                if "df" not in data_code:
+                    data_code = f"import pandas as pd\nimport numpy as np\ndf = {data_code}"
+                exec(data_code, local_env)
+                df = local_env.get("df", None)
+            except Exception:
+                df = pd.DataFrame({
+                    "변수1": np.random.rand(20),
+                    "변수2": np.random.randint(10, 100, 20),
+                    "변수3": np.random.normal(0, 1, 20),
+                    "변수4": np.linspace(1, 10, 20),
+                    "변수5": np.random.choice(["A", "B", "C"], 20)
+                })
+
+            # 분석 텍스트
+            analysis_prompt = (
+                f"'{creative_title}' '{sec}' 섹션 작성. df 기반 모델링/통계/해석, 최소 {min_words}단어 이상."
+            )
+            text_exp = openai_utils.ask_question(analysis_prompt, api_key=api_key)
+            text = text_utils.clean_section_text(text_exp)
+            doc.append(NoEscape(text))
+
+            # 그래프
+            try:
+                fig = figure_utils.generate_graph_from_df(sec, df, creative_title)
+                if fig:
+                    figure_utils.insert_figure(doc, fig, f"{sec} 관련 그래프", placement='H')
+            except Exception as e:
+                print(f"[그래프 생성 실패: {e}]")
+
+            # 표
+            try:
+                table_latex = df.to_latex(index=False, longtable=False, caption=f"{sec} 관련 표", label=f"tab:{sec}")
+                doc.append(NoEscape(r"\begin{table}[H]\centering" + table_latex + r"\end{table}"))
+            except Exception as e:
+                print(f"[표 생성 실패: {e}]")
+
         else:
+            # 일반 섹션
             text_exp = openai_utils.ask_question(
                 f"'{creative_title}' '{sec}' 섹션 작성, 최소 {min_words}단어 이상.",
                 api_key=api_key
@@ -111,8 +161,10 @@ def generate_paper(topic, authors=None, affiliations=None, emails=None, api_key=
             text = text_utils.clean_section_text(text_exp, remove_title=True, section_title=sec)
             text = text_utils.insert_cites(text, bib_keys)
             doc.append(NoEscape(text))
+
         doc.append(Command('newpage'))
-    # 7. 참고문헌 삽입
+
+    # 7. 참고문헌
     doc.append(NoEscape(r"\bibliographystyle{apalike}"))
     doc.append(NoEscape(r"\bibliography{references}"))
 
