@@ -83,6 +83,9 @@ def generate_paper(topic, authors=None, affiliations=None, emails=None, api_key=
     doc.append(NoEscape(r'\textbf{키워드:} ' + text_utils.extract_keywords(abstract_text, api_key=api_key)))
     doc.append(Command('newpage'))
 
+    doc.append(NoEscape(r'\tableofcontents')) 
+    doc.append(Command('newpage'))
+    
     # 5. 참고문헌
     bib_entries = bib_utils.generate_bibtex(research_topic, 10, api_key=api_key)
     with open("references.bib", 'w', encoding='utf-8') as f:
