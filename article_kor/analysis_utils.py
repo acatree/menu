@@ -59,7 +59,6 @@ def generate_analysis_section(doc, creative_title, sec, min_words, api_key=None)
 
     text_exp = openai_utils.ask_question(analysis_prompt, api_key=api_key)
     text = text_utils.clean_section_text(text_exp)
-    text = finalize_latex_output(text)
 
     doc.append(NoEscape(text))
 
